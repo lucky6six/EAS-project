@@ -12,6 +12,7 @@
 uint64_t Simulator::startTime = 0;
 uint32_t const Simulator::MAX_CAP = 1024;
 bool Simulator::finishFlag = false;
+uint64_t const Simulator::checkPeriod = 100;
 
 Simulator::Simulator()
 {
@@ -38,6 +39,8 @@ Simulator::Simulator()
     scheduler = new EasScheduler(&this->perfDomains);
 
     this->passSchedulerToCPU(scheduler);
+
+    this->inputTasks(taskTestPath);
 }
 
 /* Return microseconds */
@@ -56,14 +59,13 @@ uint64_t Simulator::GetCurrentTime()
     return currentTime;
 }
 
-vector<Task*> Simulator::InputTasks(const string& path)
+void Simulator::inputTasks(const string& path)
 {
-    vector<Task*> TaskList;
     std::ifstream file(path);
     string line;
     if (!file.is_open()) {
         std::cerr << "Failed to open file" << std::endl;
-        return TaskList;
+        return;
     }
 
     // 跳过第一行
@@ -79,9 +81,27 @@ vector<Task*> Simulator::InputTasks(const string& path)
         }
         Task* task = new Task(std::stoull(row[0]), std::stoull(row[1]), std::stoull(row[2]),
                               std::stoull(row[3]), std::stoull(row[4]), std::stoull(row[5]));
-        TaskList.push_back(task);
+        taskList.push_back(task);
     }
-    return TaskList;
+}
+
+void Simulator::startAllocTask(vector<Task*> &TaskList) {
+    Simulator* curSim = this;
+    thread t([&TaskList, curSim]
+                     {
+                         while(!Simulator::finishFlag) {
+                             if (!TaskList.empty()) {
+                                 // 分配给CPU
+                                 for (auto task : TaskList) {
+                                     auto curTime = curSim->GetCurrentTime();
+                                     if (curTime >= task->GetArrivalTime()) {
+                                         curSim->scheduler->SchedNewTask(task);
+                                     }
+                                 }
+                             }
+                             std::this_thread::sleep_for(std::chrono::microseconds(Simulator::checkPeriod));
+                         } });
+    t.join();
 }
 
 void Simulator::Run()
@@ -91,6 +111,8 @@ void Simulator::Run()
     for (auto c: this->cpus) {
         c->Run();
     }
+    this->startAllocTask(this->taskList);
+
 }
 
 void Simulator::passSchedulerToCPU(Scheduler *sched)

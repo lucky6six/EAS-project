@@ -59,6 +59,8 @@ public:
     }
 
     double CalculateRatio(uint64_t);
+
+    uint64_t GetArrivalTime();
 };
 
 #endif

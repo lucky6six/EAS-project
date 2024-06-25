@@ -16,7 +16,7 @@ private:
     Scheduler *scheduler;
     vector <PerfDomain*> perfDomains;
     vector <CPU*> cpus;
-    CPUType type;
+    vector <Task*> taskList;
     static uint64_t startTime; /* us */
 
     const uint32_t NUM_LITTEL_CORE = 4;
@@ -29,12 +29,14 @@ private:
 
     static uint64_t getCurrentTimeReal();
     void passSchedulerToCPU(Scheduler *);
+    void inputTasks(const string& path);
+    void startAllocTask(vector<Task*> &TaskList);
 public:
     static const uint32_t MAX_CAP;
     static bool finishFlag;
+    static const uint64_t checkPeriod;
 
     Simulator();
-    vector<Task*> InputTasks(const string& path);
     void Run();
     static uint64_t GetCurrentTime();
 };
