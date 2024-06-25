@@ -1,34 +1,37 @@
 #include "task.h"
+#include "cpu.h"
 #include "simulator.h"
 
-bool Task::checkDeadline(uint64_t currentTime)
+void Task::CheckDeadline(uint64_t currentTime)
 {
-    if (currentTime > deadlineTime + arrivalTime)
-    {
+    if (currentTime > deadlineTime + arrivalTime) {
         isOvertime = true;
-        return true;
     }
-    return false;
+}
+double Task::CalculateRatio(uint64_t CoreCap)
+{
+    uint64_t tmpCap;
+
+    if (this->capacity >= CoreCap) {
+        tmpCap = CoreCap;
+    }
+    else {
+        tmpCap = this->capacity;
+    }
+
+    return static_cast<double>(tmpCap) / Simulator::MAX_CAP;
 }
 
-void Task::updateWorkTime(uint64_t CoreCap)
+void Task::UpdateWorkTime(uint64_t CoreCap)
 {
-    if (this->capacity >= CoreCap)
-    {
-        this->totalWorkTime += CPU::timeSlice * CoreCap / Simultor::MAX_CAP;
-    }
-    else
-    {
-        this->totalWorkTime += CPU::timeSlice * this->capacity / Simultor::MAX_CAP;
-    }
+    this->totalWorkTime += CPU::timeSlice * CalculateRatio(CoreCap);
 
-    if (this->totalWorkTime > this->needWorkTime)
-    {
+    if (this->totalWorkTime > this->needWorkTime) {
         this->isFinish = true;
     }
 }
 
-uint32_t Task::getCapacity()
+uint32_t Task::GetCapacity()
 {
     return this->capacity;
 }

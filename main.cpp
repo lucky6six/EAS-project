@@ -5,7 +5,7 @@
 #include "simulator.h"
 
 void test() {
-    Simultor simultor;
+    Simulator simultor;
     vector<Task*> TaskList = simultor.InputTasks("../taskSample.csv");
 }
 

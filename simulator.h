@@ -3,14 +3,14 @@
 
 #include <vector>
 #include <cstdint>
-#include <string>
 
 #include "cpu.h"
 #include "sched.h"
 
 using std::vector;
 
-class Simultor {
+class Simulator
+{
 private:
     EnergyModels *energyModels;
     Scheduler *scheduler;
@@ -18,7 +18,6 @@ private:
     vector <CPU*> cpus;
     CPUType type;
     static uint64_t startTime; /* us */
-    static uint64_t totalPeriod; /* us */
 
     const uint32_t NUM_CPUS = 8;
     const uint32_t NUM_CORE_TYPES = 3;
@@ -30,13 +29,32 @@ private:
     const string BigCoreFreq = "../cpu-model/BigCoreFreq.csv";
 
     static uint64_t getCurrentTimeReal();
+    void passSchedulerToCPU(Scheduler *);
 public:
     static const uint32_t MAX_CAP;
+    static bool finishFlag;
 
-    Simultor();
+    Simulator();
     vector<Task*> InputTasks(const string& path);
     void Run();
     static uint64_t GetCurrentTime();
+};
+
+class Statistics
+{
+public:
+    static vector<Task*> finishTasks;
+    static uint64_t totalRuntime; /* us */
+    static double totalPower; /* mW */
+    static uint64_t totalWaitTime; /* us */
+    static uint32_t totalTaskNum;
+
+    static void AddToFinishList(Task *);
+    static void AddTotalPower(double);
+    static void ReportTotalPower();
+    static void ReportTotalRuntime();
+    static void ReportDelayTaskNum();
+    static void ReportTotalWaitTime();
 };
 
 #endif

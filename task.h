@@ -26,8 +26,7 @@ private:
     bool isFinish;
 
 public:
-    Task()
-    {
+    Task() {
         isOvertime = false;
         isFinish = false;
     }
@@ -45,11 +44,21 @@ public:
         this->isFinish = false;
     };
 
-    bool checkDeadline(uint64_t currentTime);
+    void CheckDeadline(uint64_t currentTime);
 
-    void updateWorkTime(uint64_t curCoreCapacity);
+    void UpdateWorkTime(uint64_t curCoreCapacity);
 
-    uint32_t getCapacity();
+    uint32_t GetCapacity();
+
+    bool IsTaskFinish() {
+        return isFinish;
+    }
+
+    bool IsTaskDelay() {
+        return isOvertime;
+    }
+
+    double CalculateRatio(uint64_t);
 };
 
 #endif

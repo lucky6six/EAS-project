@@ -1,38 +1,35 @@
 #ifndef __SCHED_H__
 #define __SCHED_H__
-#include "cpu.h"
-#include "task.h"
+
 #include <vector>
+#include <mutex>
 
-// TODO 全局energy大表 可以 from simulator
-// EnergyModels *getEnergyModels()
-// { /* code */
-// }
+#include "task.h"
 
-// TODO 获取所有perfDomain的链表  可以from simulator的this->perfDomains
-// 反正就是全局的pds
-static vector<PerfDomain *> *getAllPerfDomains()
-{ /* code */
-    return NULL;
-}
+using std::vector;
+using std::mutex;
+
+class CPU;
+class PerfDomain;
 
 class Scheduler
 {
+protected:
     // EnergyModels *energyModels;
-    vector<PerfDomain *> *pds;
-    // 用eas找最佳cpu
-    CPU *findEasCpu(Task *t);
+    vector<PerfDomain *> *perfDomains;
+    mutex schedLock;
+    virtual CPU *findNextCpu(Task *t) = 0;
     // 直接拿队首
-    Task *findTaskToSched(CPU *cpu);
+    virtual Task *findTaskToSched(CPU *cpu) = 0;
+    virtual CPU *schedTask(Task *t) = 0;
 
 public:
-    Scheduler();
-    void init();
+    Scheduler() {}
+    Scheduler(vector<PerfDomain *> *pds): perfDomains(pds) {}
     // 调度新来的task
-    CPU *schedNewTask(Task *t);
+    virtual CPU *SchedNewTask(Task *t) = 0;
     // 调度该cpu队首task
-    CPU *schedCpu(CPU *cpu);
-    void test();
+    virtual CPU *SchedCpu(CPU *cpu) = 0;
 };
 
 #endif

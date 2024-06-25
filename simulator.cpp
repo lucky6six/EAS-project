@@ -1,15 +1,20 @@
-#include "simulator.h"
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <chrono>
 
-uint64_t Simultor::startTime = 0;
-uint64_t Simultor::totalPeriod = 0;
-uint32_t const Simultor::MAX_CAP = 1024;
+#include "sched.h"
+#include "sched-eas.h"
+#include "sched-opt.h"
+#include "simulator.h"
 
-Simultor::Simultor() {
+uint64_t Simulator::startTime = 0;
+uint32_t const Simulator::MAX_CAP = 1024;
+bool Simulator::finishFlag = false;
+
+Simulator::Simulator()
+{
     uint32_t i;
     EnergyModel *littleCore, *middleCore, *bigCore;
 
@@ -29,26 +34,31 @@ Simultor::Simultor() {
         }
     }
 
-    /* Init Scheduler */
-    scheduler = new Scheduler();
+    /* Create EAS Scheduler */
+    scheduler = new EasScheduler(&this->perfDomains);
+
+    this->passSchedulerToCPU(scheduler);
 }
 
 /* Return microseconds */
-uint64_t Simultor::getCurrentTimeReal() {
+uint64_t Simulator::getCurrentTimeReal()
+{
     return std::chrono::duration_cast<std::chrono::microseconds>
         (std::chrono::steady_clock::now().time_since_epoch()).count();
 
 }
 
 /* Return microseconds */
-uint64_t Simultor::GetCurrentTime() {
+uint64_t Simulator::GetCurrentTime()
+{
     auto currentTimeReal = getCurrentTimeReal();
     auto currentTime = currentTimeReal - startTime;
 
     return currentTime;
 }
 
-vector<Task*> Simultor::InputTasks(const string& path) {
+vector<Task*> Simulator::InputTasks(const string& path)
+{
     vector<Task*> TaskList;
     std::ifstream file(path);
     string line;
@@ -75,9 +85,67 @@ vector<Task*> Simultor::InputTasks(const string& path) {
     return TaskList;
 }
 
-void Simultor::Run() {
-    Simultor::startTime = getCurrentTimeReal();
+void Simulator::Run()
+{
+    Simulator::startTime = getCurrentTimeReal();
+    Simulator::finishFlag = false;
     for (auto c: this->cpus) {
         c->Run();
     }
+}
+
+void Simulator::passSchedulerToCPU(Scheduler *sched)
+{
+    for (auto c: this->cpus) {
+        c->SetScheduler(sched);
+    }
+}
+
+uint64_t Statistics::totalRuntime = 0;
+double Statistics::totalPower = 0;
+vector<Task*> Statistics::finishTasks = {};
+uint32_t Statistics::totalTaskNum = 0;
+
+void Statistics::AddToFinishList(Task *task)
+{
+    Statistics::finishTasks.push_back(task);
+    if (Statistics::finishTasks.size() == Statistics::totalTaskNum) {
+        ReportTotalPower();
+        ReportTotalRuntime();
+        ReportDelayTaskNum();
+        ReportTotalWaitTime();
+    }
+}
+
+void Statistics::AddTotalPower(double power)
+{
+    Statistics::totalPower += power;
+}
+
+void Statistics::ReportTotalPower()
+{
+    std::cout << "Total Power: " << Statistics::totalPower << " mW" << std::endl;
+}
+
+void Statistics::ReportTotalRuntime()
+{
+    std::cout << "Total Runtime: " << Statistics::totalRuntime << " us" << std::endl;
+}
+
+void Statistics::ReportDelayTaskNum()
+{
+    uint32_t delayTaskNum = 0;
+    for (auto task: Statistics::finishTasks) {
+        if (task->IsTaskDelay()) {
+            delayTaskNum++;
+        }
+    }
+    std::cout << "Delay Task Number: " << delayTaskNum << std::endl;
+}
+
+void Statistics::ReportTotalWaitTime()
+{
+    uint64_t totalWaitTime = 0;
+    /* TODO */
+    std::cout << "Total Wait Time: " << totalWaitTime << " us" << std::endl;
 }

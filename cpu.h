@@ -5,15 +5,19 @@
 #include <queue>
 #include <thread>
 #include <vector>
+#include <string>
 
 #include "task.h"
-#include <string>
 
 using std::queue;
 using std::string;
 using std::thread;
 using std::vector;
 
+class EnergyModel;
+class PerfDomain;
+class Scheduler;
+struct CPUFreq;
 struct CPUFreq
 {
     uint32_t freq;
@@ -21,9 +25,6 @@ struct CPUFreq
     uint32_t capacity;
 };
 
-class EnergyModel;
-class PerfDomain;
-struct CPUFreq;
 class CPU
 {
 private:
@@ -34,27 +35,28 @@ private:
     PerfDomain *perfDomain; /** Which PerfDomain it belongs to */
     thread t;
     queue<Task *> tasksQueue;
-    CPUFreq *curFreq;  // 当前的频点（freq,pwr,cap）
+    CPUFreq *curCPUFreq;  // 当前的频点（freq,pwr,cap）
     uint32_t capacity; // 当前的算力负载
+    Scheduler *scheduler;
 
-    void execTask(Task *);
-
+    static void execTask(CPU *, Task *);
 public:
     static uint64_t timeSlice; /* us */
 
     CPU() {}
     CPU(EnergyModel *energyModel);
-    void test();
     void Run();
     Task *PopTask();
     void AddTask(Task *);
     uint32_t GetCurCapacity();
     Task *TopTask(); // 返回队列头部的任务
-    void reBuildCapacity();
+    void RebuildCapacity();
     uint32_t GetCapacity();
-    PerfDomain *GetPD();
-    CPUFreq *GetFreq();
+    PerfDomain *GetPerfDomain();
+    CPUFreq *GetCPUFreq();
     void SetFreq(CPUFreq *);
+    void SetScheduler(Scheduler *);
+    static double GetCPUPower(CPU *);
 };
 
 enum CPUType
@@ -97,7 +99,7 @@ public:
     CPUFreq *GetFreq();
     // 获取可调整频点列表
     vector<CPUFreq> *GetEM();
-    void ReBuildPerfDomain();
+    void RebuildPerfDomain();
     CPUFreq *getSuitableFreq(uint32_t expectCapacity);
 };
 

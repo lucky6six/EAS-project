@@ -1,10 +1,10 @@
-#include <iostream>
 #include <chrono>
-#include "cpu.h"
-#include "simulator.h"
-#include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include "cpu.h"
+#include "sched.h"
+#include "simulator.h"
 
 using std::ifstream;
 using std::istringstream;
@@ -19,41 +19,41 @@ CPU::CPU(EnergyModel *e)
     this->id = cpusid++;
 }
 
-void CPU::test()
-{
-    std::cout << "CPU::test()" << std::endl;
-}
-
 uint32_t CPU::GetCurCapacity()
 {
-    return this->curFreq->capacity;
+    return this->curCPUFreq->capacity;
 }
 
-void CPU::execTask(Task *task)
+double CPU::GetCPUPower(CPU *cpu)
 {
-    auto currentTime = Simultor::GetCurrentTime();
-    /* Calculate cost time & capacity */
-    if (task->checkDeadline(currentTime))
-    {
-        /* TODO */
-    }
+    return cpu->GetCPUFreq()->power;
+}
 
-    task->updateWorkTime(this->GetCurCapacity());
+void CPU::execTask(CPU *curCPU, Task *task)
+{
+    auto currentTime = Simulator::GetCurrentTime();
+    double power;
+    /* Calculate cost time & capacity */
+    task->CheckDeadline(currentTime);
+    task->UpdateWorkTime(curCPU->GetCurCapacity());
+    /* Calculate power const */
+    power = task->CalculateRatio(curCPU->GetCurCapacity()) * CPU::GetCPUPower(curCPU);
+
 }
 
 void CPU::Run()
 {
     auto curCPU = this;
-    this->t = thread([curCPU]
-                     {
-        while(true) {
+    this->t = thread([curCPU]{
+        while(!Simulator::finishFlag) {
             if (!curCPU->tasksQueue.empty()) {
                 Task *task = curCPU->tasksQueue.front();
-                curCPU->execTask(task);
+                curCPU->execTask(curCPU, task);
             }
             std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
-            /* TODO:Ask scheduler for sched() */
-        } });
+            curCPU->scheduler->SchedCpu(curCPU);
+        }
+    });
     this->t.join();
 }
 
@@ -74,12 +74,11 @@ Task *CPU::TopTask()
     return this->tasksQueue.front();
 }
 // 重新计算task队列中的capacity和
-void CPU::reBuildCapacity()
+void CPU::RebuildCapacity()
 {
     uint32_t capacity = 0;
-    for (auto task = this->tasksQueue.front(); task != this->tasksQueue.back(); ++task)
-    {
-        capacity += task->getCapacity();
+    for (auto task = this->tasksQueue.front(); task != this->tasksQueue.back(); ++task) {
+        capacity += task->GetCapacity();
     }
     this->capacity = capacity;
     return;
@@ -90,19 +89,23 @@ uint32_t CPU::GetCapacity()
     return this->capacity;
 }
 
-PerfDomain *CPU::GetPD()
+PerfDomain *CPU::GetPerfDomain()
 {
     return this->perfDomain;
 }
 
-CPUFreq *CPU::GetFreq()
+CPUFreq *CPU::GetCPUFreq()
 {
-    return this->curFreq;
+    return this->curCPUFreq;
 }
 
 void CPU::SetFreq(CPUFreq *freq)
 {
-    this->curFreq = freq;
+    this->curCPUFreq = freq;
+}
+
+void CPU::SetScheduler(Scheduler *sched) {
+    this->scheduler = sched;
 }
 
 EnergyModel::EnergyModel(CPUType type)
@@ -115,14 +118,12 @@ EnergyModel::EnergyModel(enum CPUType type, const string &path)
     this->type = type;
     ifstream file(path);
     string line;
-    while (getline(file, line))
-    {
+    while (getline(file, line)) {
         istringstream ss(line);
         string cell;
         vector<string> row;
 
-        while (std::getline(ss, cell, ','))
-        {
+        while (std::getline(ss, cell, ',')) {
             row.push_back(cell);
         }
         CPUFreq cpuFreq = {static_cast<uint32_t>(std::stoul(row[0])), std::stod(row[1]), static_cast<uint32_t>(std::stoul(row[2]))};
@@ -135,12 +136,12 @@ vector<CPUFreq> *EnergyModel::GetFreqs()
 {
     return &this->cpufreqs;
 }
+
 // TODO::初始化频点！(建议最小的)()
 PerfDomain::PerfDomain(uint32_t cpuNum, EnergyModel *energyModel)
 {
     this->energyModel = energyModel;
-    for (uint32_t i = 0; i < cpuNum; i++)
-    {
+    for (uint32_t i = 0; i < cpuNum; i++) {
         CPU *cpu = new CPU(energyModel);
         this->cpus.push_back(cpu);
     }
@@ -161,33 +162,28 @@ vector<CPUFreq> *PerfDomain::GetEM()
     return this->energyModel->GetFreqs();
 }
 
-void PerfDomain::ReBuildPerfDomain()
+void PerfDomain::RebuildPerfDomain()
 {
     uint32_t max_capacity = 0;
-    for (auto cpu = this->cpus.begin(); cpu != this->cpus.end(); ++cpu)
-    {
-        (*cpu)->reBuildCapacity();
-        if ((*cpu)->GetCapacity() > max_capacity)
-        {
-            max_capacity = (*cpu)->GetCapacity();
+    for (auto cpu: this->cpus) {
+        cpu->RebuildCapacity();
+        if (cpu->GetCapacity() > max_capacity) {
+            max_capacity = cpu->GetCapacity();
         }
     }
     this->curFreq = this->getSuitableFreq(max_capacity);
-    for (auto cpu = this->cpus.begin(); cpu != this->cpus.end(); ++cpu)
-    {
-        (*cpu)->SetFreq(this->curFreq);
+    for (auto cpu: this->cpus) {
+        cpu->SetFreq(this->curFreq);
     }
 }
 
 CPUFreq *PerfDomain::getSuitableFreq(uint32_t expectCapacity)
 {
     CPUFreq *ret = nullptr;
-    vector<CPUFreq> *EM = this->GetEM();
-    for (auto it = EM->begin(); it != EM->end(); it++)
-    {
-        if (it->capacity >= expectCapacity)
-        {
-            ret = &(*it);
+    vector<CPUFreq> *em = this->GetEM();
+    for (auto cpufreq:  *em) {
+        if (cpufreq.capacity >= expectCapacity) {
+            ret = &cpufreq;
             break;
         }
     }
