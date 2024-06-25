@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "sched.h"
 #include "cpu.h"
@@ -6,6 +7,11 @@
 
 void test() {
     Simulator simultor;
+    simultor.Run();
+    while (!Simulator::finishFlag) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    Statistics::ReportAll();
 }
 
 int main() {

@@ -12,6 +12,8 @@ using std::mutex;
 class CPU;
 class PerfDomain;
 
+// #define SCHED_DEBUG
+
 class Scheduler
 {
 protected:

@@ -18,14 +18,15 @@ private:
     vector <CPU*> cpus;
     vector <Task*> taskList;
     static uint64_t startTime; /* us */
+    thread allocTaskThread;
 
-    const uint32_t NUM_LITTEL_CORE = 4;
-    const uint32_t NUM_MIDDLE_CORE = 3;
+    const uint32_t NUM_LITTEL_CORE = 0;
+    const uint32_t NUM_MIDDLE_CORE = 0;
     const uint32_t NUM_BIG_CORE = 1;
-    const string LittleCorePath = "../cpu-models/LittleCoreFreq.csv";
-    const string MiddleCorePath = "../cpu-models/MiddleCoreFreq.csv";
-    const string BigCorePath = "../cpu-models/BigCoreFreq.csv";
-    const string taskTestPath = "../task-tests/taskSample.csv";
+    const string LittleCorePath = "./cpu-models/LittleCoreFreq.csv";
+    const string MiddleCorePath = "./cpu-models/MiddleCoreFreq.csv";
+    const string BigCorePath = "./cpu-models/BigCoreFreq.csv";
+    const string taskTestPath = "./task-tests/taskSample.csv";
 
     static uint64_t getCurrentTimeReal();
     void passSchedulerToCPU(Scheduler *);
@@ -56,6 +57,7 @@ public:
     static void ReportTotalRuntime();
     static void ReportDelayTaskNum();
     static void ReportTotalWaitTime();
+    static void ReportAll();
 };
 
 #endif

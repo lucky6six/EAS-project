@@ -26,6 +26,8 @@ private:
     bool isFinish;
 
 public:
+    uint32_t id;
+
     Task() {
         isOvertime = false;
         isFinish = false;
@@ -33,6 +35,7 @@ public:
 
     Task(uint64_t arrivalTime, uint64_t workPeriod, uint64_t sleepPeriod,
          uint64_t totalWorkTime, uint64_t needWorkTime, uint64_t deadlineTime) {
+        static uint32_t newid = 0;
         this->arrivalTime = arrivalTime;
         this->workPeriod = workPeriod;
         this->sleepPeriod = sleepPeriod;
@@ -42,6 +45,7 @@ public:
         this->capacity = 1024 * workPeriod / (workPeriod + sleepPeriod);
         this->isOvertime = false;
         this->isFinish = false;
+        this->id = newid++;
     };
 
     void CheckDeadline(uint64_t currentTime);
@@ -61,6 +65,9 @@ public:
     double CalculateRatio(uint64_t);
 
     uint64_t GetArrivalTime();
+
+
+    uint64_t GetTotalWorkTime();
 };
 
 #endif

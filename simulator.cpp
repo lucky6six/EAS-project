@@ -26,8 +26,11 @@ Simulator::Simulator()
     energyModels = new EnergyModels(littleCore, middleCore, bigCore);
 
     /* Construct Perf Domain and CPU */
+    printf("Build Litte-Core PD\n");
     this->perfDomains.push_back(new PerfDomain(NUM_LITTEL_CORE, littleCore));
+    printf("Build Middle-Core PD\n");
     this->perfDomains.push_back(new PerfDomain(NUM_MIDDLE_CORE, middleCore));
+    printf("Build Big-Core PD\n");
     this->perfDomains.push_back(new PerfDomain(NUM_BIG_CORE, bigCore));
     for (auto p: this->perfDomains) {
         for (auto c: p->GetCPUS()) {
@@ -83,25 +86,31 @@ void Simulator::inputTasks(const string& path)
                               std::stoull(row[3]), std::stoull(row[4]), std::stoull(row[5]));
         taskList.push_back(task);
     }
+
+    Statistics::totalTaskNum = taskList.size();
 }
 
 void Simulator::startAllocTask(vector<Task*> &TaskList) {
     Simulator* curSim = this;
-    thread t([&TaskList, curSim]
-                     {
-                         while(!Simulator::finishFlag) {
-                             if (!TaskList.empty()) {
-                                 // 分配给CPU
-                                 for (auto task : TaskList) {
-                                     auto curTime = curSim->GetCurrentTime();
-                                     if (curTime >= task->GetArrivalTime()) {
-                                         curSim->scheduler->SchedNewTask(task);
-                                     }
-                                 }
-                             }
-                             std::this_thread::sleep_for(std::chrono::microseconds(Simulator::checkPeriod));
-                         } });
-    t.join();
+
+    this->allocTaskThread = thread([&TaskList, curSim] {
+        std::cout << "Start startAllocTask" << std::endl;
+        while(!Simulator::finishFlag) {
+            if (!TaskList.empty()) {
+                // 分配给CPU
+                for (auto taskIt = TaskList.begin(); taskIt != TaskList.end(); ++taskIt) {
+                    auto curTime = curSim->GetCurrentTime();
+                    if (curTime >= (*taskIt)->GetArrivalTime()) {
+                        printf("task %p %d\n", *taskIt, (*taskIt)->id);
+                        curSim->scheduler->SchedNewTask(*taskIt);
+                        TaskList.erase(taskIt);
+                        break;
+                    }
+                }
+            }
+        std::this_thread::sleep_for(std::chrono::microseconds(Simulator::checkPeriod));
+    }});
+    this->allocTaskThread.detach();
 }
 
 void Simulator::Run()
@@ -112,7 +121,6 @@ void Simulator::Run()
         c->Run();
     }
     this->startAllocTask(this->taskList);
-
 }
 
 void Simulator::passSchedulerToCPU(Scheduler *sched)
@@ -131,10 +139,8 @@ void Statistics::AddToFinishList(Task *task)
 {
     Statistics::finishTasks.push_back(task);
     if (Statistics::finishTasks.size() == Statistics::totalTaskNum) {
-        ReportTotalPower();
-        ReportTotalRuntime();
-        ReportDelayTaskNum();
-        ReportTotalWaitTime();
+        Simulator::finishFlag = true;
+        Statistics::totalRuntime = Simulator::GetCurrentTime();
     }
 }
 
@@ -168,5 +174,13 @@ void Statistics::ReportTotalWaitTime()
 {
     uint64_t totalWaitTime = 0;
     /* TODO */
-    std::cout << "Total Wait Time: " << totalWaitTime << " us" << std::endl;
+    std::cout << "TODO: Total Wait Time: " << totalWaitTime << " us" << std::endl;
+}
+
+void Statistics::ReportAll()
+{
+    ReportTotalPower();
+    ReportTotalRuntime();
+    ReportDelayTaskNum();
+    ReportTotalWaitTime();
 }

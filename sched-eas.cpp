@@ -9,7 +9,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
 {
     CPU *targetCPU = nullptr;
     CPUFreq *curFreq;
-    CPU *targetCPUinPd;
+    CPU *targetCPUinPd = nullptr;
     // 当前pd的最小cpu cap
     uint32_t minCPUCapacity;
     // 迁移的实现为先pop task，再类似新task进入系统一样部署
@@ -24,7 +24,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
 
     // 遍历每个pd，评估最低能效开销
     for (auto pd : *perfDomains) {
-        curFreq = pd->GetFreq();
+        curFreq = pd->GetCurCPUFreq();
         minCPUCapacity = curFreq->capacity;
         capSumInPd = 0;
         EM = pd->GetEM();
@@ -35,6 +35,10 @@ CPU *EasScheduler::findNextCpu(Task *t)
                 minCPUCapacity = cpu->GetCapacity();
                 targetCPUinPd = cpu;
             }
+        }
+        if (targetCPUinPd == nullptr) {
+            /* Current PerfDomain: No Available CPU */
+            continue;
         }
         // 计算原能耗开销
         powerOld = static_cast<double>(capSumInPd) / curFreq->capacity * curFreq->power;
@@ -59,8 +63,8 @@ CPU *EasScheduler::findNextCpu(Task *t)
             targetCPU = targetCPUinPd;
         }
     }
-    return targetCPU;
 
+    return targetCPU;
 }
 
 // 直接拿队首
@@ -72,8 +76,11 @@ Task *EasScheduler::findTaskToSched(CPU *cpu)
 CPU *EasScheduler::schedTask(Task *t)
 {
     CPU *c = findNextCpu(t);
-    c->AddTask(t);
-    c->GetPerfDomain()->RebuildPerfDomain();
+    if (c != nullptr) {
+        c->AddTask(t);
+        c->GetPerfDomain()->RebuildPerfDomain();
+    }
+
     return c;
 }
 
@@ -81,8 +88,11 @@ CPU *EasScheduler::SchedNewTask(Task *t)
 {
     std::lock_guard<mutex> guard(this->schedLock);
     CPU *c = findNextCpu(t);
-    c->AddTask(t);
-    c->GetPerfDomain()->RebuildPerfDomain();
+    if (c != nullptr) {
+        c->AddTask(t);
+        c->GetPerfDomain()->RebuildPerfDomain();
+    }
+
     return c;
 }
 
@@ -90,15 +100,34 @@ CPU *EasScheduler::SchedNewTask(Task *t)
 // task迁移已在函数内完成
 CPU *EasScheduler::SchedCpu(CPU *cpu)
 {
-    std::lock_guard<mutex> guard(this->schedLock);
-    Task *t = cpu->PopTask();
+#ifdef SCHED_DEBUG
+    printf("%s: cpuid: %u taskNum: %lu\n", __func__, cpu->GetCPUId(), cpu->GetTaskQueue().size());
+#endif
+    Task *t;
     CPU *toCPU;
+    if (cpu->IsEmpty()) {
+        return nullptr;
+    }
 
+    std::lock_guard<mutex> guard(this->schedLock);
+    t = cpu->PopTask();
     cpu->GetPerfDomain()->RebuildPerfDomain();
+#ifdef SCHED_DEBUG
+    printf("Rebuild PerfDomain Done\n");
+#endif
     if (t->IsTaskFinish()) {
+#ifdef SCHED_DEBUG
+    printf("Add To FinishList\n");
+#endif
         Statistics::AddToFinishList(t);
+#ifdef SCHED_DEBUG
+    printf("Add To FinishList Done\n");
+#endif
         return nullptr;
     }
     toCPU = schedTask(t);
+#ifdef SCHED_DEBUG
+    printf("%s: Sched Task Done\n", __func__);
+#endif
     return toCPU;
 }

@@ -36,6 +36,12 @@ uint32_t Task::GetCapacity()
     return this->capacity;
 }
 
-uint64_t Task::GetArrivalTime() {
+uint64_t Task::GetArrivalTime()
+{
     return this->arrivalTime;
+};
+
+uint64_t Task::GetTotalWorkTime()
+{
+    return this->totalWorkTime;
 };
