@@ -19,8 +19,6 @@ private:
     CPUType type;
     static uint64_t startTime; /* us */
 
-    const uint32_t NUM_CPUS = 8;
-    const uint32_t NUM_CORE_TYPES = 3;
     const uint32_t NUM_LITTEL_CORE = 4;
     const uint32_t NUM_MIDDLE_CORE = 3;
     const uint32_t NUM_BIG_CORE = 1;
