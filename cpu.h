@@ -27,7 +27,6 @@ class CPU
 {
 private:
     static uint32_t cpusid;
-    static uint64_t interruptTime; /* ms */
     uint32_t id;
     EnergyModel *energyModel; /** Which EnergyModel it belongs to */
     // TODO:初始化时设置该cpu位于哪个PerfDomain
@@ -40,12 +39,15 @@ private:
     void execTask(Task *);
 
 public:
+    static uint64_t timeSlice; /* us */
+
     CPU() {}
     CPU(EnergyModel *energyModel);
     void test();
     void Run();
     Task *PopTask();
     void AddTask(Task *);
+    uint32_t GetCurCapacity();
     Task *TopTask(); // 返回队列头部的任务
     void reBuildCapacity();
     uint32_t GetCapacity();

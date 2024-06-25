@@ -1,5 +1,10 @@
 #include "simulator.h"
 #include <string>
+#include <chrono>
+
+uint64_t Simultor::startTime = 0;
+uint64_t Simultor::totalPeriod = 0;
+uint32_t const Simultor::MAX_CAP = 1024;
 
 Simultor::Simultor() {
     uint32_t i;
@@ -25,7 +30,23 @@ Simultor::Simultor() {
     scheduler = new Scheduler();
 }
 
-void Simultor::run() {
+/* Return microseconds */
+uint64_t Simultor::getCurrentTimeReal() {
+    return std::chrono::duration_cast<std::chrono::microseconds>
+        (std::chrono::steady_clock::now().time_since_epoch()).count();
+
+}
+
+/* Return microseconds */
+uint64_t Simultor::GetCurrentTime() {
+    auto currentTimeReal = getCurrentTimeReal();
+    auto currentTime = currentTimeReal - startTime;
+
+    return currentTime;
+}
+
+void Simultor::Run() {
+    Simultor::startTime = getCurrentTimeReal();
     for (auto c: this->cpus) {
         c->Run();
     }

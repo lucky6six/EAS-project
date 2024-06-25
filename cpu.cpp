@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include "cpu.h"
+#include "simulator.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,7 +10,7 @@ using std::ifstream;
 using std::istringstream;
 
 uint32_t CPU::cpusid = 0;
-uint64_t CPU::interruptTime = 20;
+uint64_t CPU::timeSlice = 20000; /* =20ms */
 
 // TODO:初始化 要有curFreq(建议最小的)，perfDomain（belong_to），capacity（0）
 CPU::CPU(EnergyModel *e)
@@ -23,10 +24,21 @@ void CPU::test()
     std::cout << "CPU::test()" << std::endl;
 }
 
+uint32_t CPU::GetCurCapacity()
+{
+    return this->curFreq->capacity;
+}
+
 void CPU::execTask(Task *task)
 {
-    auto currenTime = std::chrono::steady_clock::now();
+    auto currentTime = Simultor::GetCurrentTime();
     /* Calculate cost time & capacity */
+    if (task->checkDeadline(currentTime))
+    {
+        /* TODO */
+    }
+
+    task->updateWorkTime(this->GetCurCapacity());
 }
 
 void CPU::Run()
@@ -39,7 +51,7 @@ void CPU::Run()
                 Task *task = curCPU->tasksQueue.front();
                 curCPU->execTask(task);
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(CPU::interruptTime));
+            std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
             /* TODO:Ask scheduler for sched() */
         } });
     this->t.join();
@@ -96,7 +108,6 @@ void CPU::SetFreq(CPUFreq *freq)
 EnergyModel::EnergyModel(CPUType type)
 {
     this->type = type;
-    /** TODO: Add CPUFreq (using util) */
 }
 
 EnergyModel::EnergyModel(enum CPUType type, const string &path)
