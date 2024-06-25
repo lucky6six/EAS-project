@@ -67,7 +67,7 @@ CPU *Scheduler::findEasCpu(Task *t)
     powerOld = capSumInPd / (curFreq->capacity) * (curFreq->power);
     //  计算部署到targetCPUinPd上的能耗开销
     //  部署后cap
-    uint32_t expectCapacity = targetCPUinPd->GetCapacity() + t->capacity;
+    uint32_t expectCapacity = targetCPUinPd->GetCapacity() + t->getCapacity();
     // 是否要提升频点
     if (expectCapacity > curFreq->capacity)
     {
@@ -80,7 +80,7 @@ CPU *Scheduler::findEasCpu(Task *t)
       }
       // 计算能耗开销
     }
-    powerNew = (capSumInPd + t->capacity) / (expectFreq->capacity) * (expectFreq->power);
+    powerNew = (capSumInPd + t->getCapacity()) / (expectFreq->capacity) * (expectFreq->power);
     double power = powerNew - powerOld;
     if (power < cur_min_power)
     {

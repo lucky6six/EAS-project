@@ -79,7 +79,7 @@ void CPU::reBuildCapacity()
     uint32_t capacity = 0;
     for (auto task = this->tasksQueue.front(); task != this->tasksQueue.back(); ++task)
     {
-        capacity += task->capacity;
+        capacity += task->getCapacity();
     }
     this->capacity = capacity;
     return;
