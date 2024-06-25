@@ -24,9 +24,9 @@ private:
     const uint32_t NUM_LITTEL_CORE = 4;
     const uint32_t NUM_MIDDLE_CORE = 3;
     const uint32_t NUM_BIG_CORE = 1;
-    const string LittleCoreFreq = "../LittleCoreFreq.csv";
-    const string MiddleCoreFreq = "../MiddleCoreFreq.csv";
-    const string BigCoreFreq = "../BigCoreFreq.csv";
+    const string LittleCoreFreq = "../cpu-model/LittleCoreFreq.csv";
+    const string MiddleCoreFreq = "../cpu-model/MiddleCoreFreq.csv";
+    const string BigCoreFreq = "../cpu-model/BigCoreFreq.csv";
 public:
     Simultor();
     void run();
