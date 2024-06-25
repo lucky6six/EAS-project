@@ -36,3 +36,6 @@
 
 # Cache
 .cache/
+
+# vscode
+.vscode/

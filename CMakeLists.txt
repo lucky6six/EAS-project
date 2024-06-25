@@ -7,4 +7,5 @@ add_executable(eas
     cpu.cpp
     sched.cpp
     util.cpp
+    simulator.cpp
 )
