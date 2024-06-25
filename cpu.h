@@ -7,10 +7,12 @@
 #include <queue>
 
 #include "task.h"
+#include <string>
 
 using std::vector;
 using std::thread;
 using std::queue;
+using std::string;
 
 class EnergyModel;
 struct CPUFreq;
@@ -50,11 +52,14 @@ class EnergyModel {
 private:
     uint32_t num;
     vector<CPUFreq> cpufreqs;
+    string path;
     enum CPUType type;
 public:
     EnergyModel() {}
 
     EnergyModel(enum CPUType type);
+
+    EnergyModel(enum CPUType type, const string& path);
 };
 
 class PerfDomain {

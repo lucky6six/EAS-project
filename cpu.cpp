@@ -1,6 +1,12 @@
 #include <iostream>
 #include <chrono>
 #include "cpu.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+using std::ifstream;
+using std::istringstream;
 
 uint32_t CPU::cpusid = 0;
 uint64_t CPU::interruptTime = 20;
@@ -47,6 +53,24 @@ void CPU::AddTask(Task *t) {
 EnergyModel::EnergyModel(CPUType type) {
     this->type = type;
     /** TODO: Add CPUFreq (using util) */
+}
+
+EnergyModel::EnergyModel(enum CPUType type, const string& path) {
+    this->type = type;
+    ifstream file(path);
+    string line;
+    while (getline(file, line)) {
+        istringstream ss(line);
+        string cell;
+        vector<string> row;
+
+        while (std::getline(ss, cell, ',')) {
+            row.push_back(cell);
+        }
+        CPUFreq cpuFreq = {static_cast<uint32_t>(std::stoul(row[0])), std::stod(row[1]), static_cast<uint32_t>(std::stoul(row[2]))};
+        this->cpufreqs.push_back(cpuFreq);
+    }
+    this->num = this->cpufreqs.size();
 }
 
 PerfDomain::PerfDomain(uint32_t cpuNum, EnergyModel *energyModel) {

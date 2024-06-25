@@ -2,12 +2,10 @@
 
 #include "sched.h"
 #include "cpu.h"
+#include "simulator.h"
 
 void test() {
-    Scheduler s;
-    CPU c;
-    s.test();
-    c.test();
+    Simultor simultor;
 }
 
 int main() {
