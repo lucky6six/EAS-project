@@ -31,7 +31,7 @@ public:
 
     bool checkDeadline(uint64_t currentTime);
 
-    void updateWorkTime(uint64_t curCoreCapacity, uint64_t timeSlice);
+    void updateWorkTime(uint64_t curCoreCapacity);
 };
 
 #endif

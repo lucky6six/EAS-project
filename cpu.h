@@ -19,7 +19,6 @@ struct CPUFreq;
 class CPU {
 private:
     static uint32_t cpusid;
-    static uint64_t interruptTime; /* ms */
     uint32_t id;
     EnergyModel *energyModel; /** Which EnergyModel it belongs to */
     thread t;
@@ -28,12 +27,15 @@ private:
 
     void execTask(Task *);
 public:
+    static uint64_t timeSlice; /* us */
+
     CPU() {}
     CPU(EnergyModel *energyModel);
     void test();
     void Run();
     Task* PopTask();
     void AddTask(Task *);
+    uint32_t GetCurCapacity();
 };
 
 struct CPUFreq {
