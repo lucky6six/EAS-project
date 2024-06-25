@@ -63,6 +63,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
 
 }
 
+// 直接拿队首
 Task *EasScheduler::findTaskToSched(CPU *cpu)
 {
     return cpu->TopTask();

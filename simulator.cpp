@@ -19,9 +19,9 @@ Simulator::Simulator()
     EnergyModel *littleCore, *middleCore, *bigCore;
 
     /* Init Energy Models */
-    littleCore = new EnergyModel(CPU_LITTLE, LittleCoreFreq);
-    middleCore = new EnergyModel(CPU_MIDDLE, MiddleCoreFreq);
-    bigCore = new EnergyModel(CPU_BIG, BigCoreFreq);
+    littleCore = new EnergyModel(CPU_LITTLE, LittleCorePath);
+    middleCore = new EnergyModel(CPU_MIDDLE, MiddleCorePath);
+    bigCore = new EnergyModel(CPU_BIG, BigCorePath);
     energyModels = new EnergyModels(littleCore, middleCore, bigCore);
 
     /* Construct Perf Domain and CPU */
@@ -45,7 +45,6 @@ uint64_t Simulator::getCurrentTimeReal()
 {
     return std::chrono::duration_cast<std::chrono::microseconds>
         (std::chrono::steady_clock::now().time_since_epoch()).count();
-
 }
 
 /* Return microseconds */

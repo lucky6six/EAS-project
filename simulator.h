@@ -24,9 +24,10 @@ private:
     const uint32_t NUM_LITTEL_CORE = 4;
     const uint32_t NUM_MIDDLE_CORE = 3;
     const uint32_t NUM_BIG_CORE = 1;
-    const string LittleCoreFreq = "../cpu-model/LittleCoreFreq.csv";
-    const string MiddleCoreFreq = "../cpu-model/MiddleCoreFreq.csv";
-    const string BigCoreFreq = "../cpu-model/BigCoreFreq.csv";
+    const string LittleCorePath = "../cpu-models/LittleCoreFreq.csv";
+    const string MiddleCorePath = "../cpu-models/MiddleCoreFreq.csv";
+    const string BigCorePath = "../cpu-models/BigCoreFreq.csv";
+    const string taskTestPath = "../task-tests/taskSample.csv";
 
     static uint64_t getCurrentTimeReal();
     void passSchedulerToCPU(Scheduler *);

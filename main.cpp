@@ -6,7 +6,6 @@
 
 void test() {
     Simulator simultor;
-    vector<Task*> TaskList = simultor.InputTasks("../taskSample.csv");
 }
 
 int main() {

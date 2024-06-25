@@ -15,17 +15,15 @@ class PerfDomain;
 class Scheduler
 {
 protected:
-    // EnergyModels *energyModels;
     vector<PerfDomain *> *perfDomains;
     mutex schedLock;
     virtual CPU *findNextCpu(Task *t) = 0;
-    // 直接拿队首
     virtual Task *findTaskToSched(CPU *cpu) = 0;
     virtual CPU *schedTask(Task *t) = 0;
 
 public:
     Scheduler() {}
-    Scheduler(vector<PerfDomain *> *pds): perfDomains(pds) {}
+    Scheduler(vector<PerfDomain *> *pds);
     // 调度新来的task
     virtual CPU *SchedNewTask(Task *t) = 0;
     // 调度该cpu队首task
