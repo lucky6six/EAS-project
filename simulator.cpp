@@ -14,7 +14,18 @@ Simultor::Simultor() {
     this->perfDomains.push_back(new PerfDomain(NUM_LITTEL_CORE, littleCore));
     this->perfDomains.push_back(new PerfDomain(NUM_MIDDLE_CORE, middleCore));
     this->perfDomains.push_back(new PerfDomain(NUM_BIG_CORE, bigCore));
+    for (auto p: this->perfDomains) {
+        for (auto c: p->GetCPUS()) {
+            this->cpus.push_back(c);
+        }
+    }
 
     /* Init Scheduler */
     scheduler = new Scheduler();
+}
+
+void Simultor::run() {
+    for (auto c: this->cpus) {
+        c->Run();
+    }
 }

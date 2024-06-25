@@ -14,7 +14,10 @@ private:
     EnergyModels *energyModels;
     Scheduler *scheduler;
     vector <PerfDomain*> perfDomains;
+    vector <CPU*> cpus;
     CPUType type;
+    uint64_t startTime;
+    uint64_t totalTime;
 
     const uint32_t NUM_CPUS = 8;
     const uint32_t NUM_CORE_TYPES = 3;
@@ -23,6 +26,7 @@ private:
     const uint32_t NUM_BIG_CORE = 1;
 public:
     Simultor();
+    void run();
 };
 
 #endif
