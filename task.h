@@ -32,6 +32,19 @@ public:
         isFinish = false;
     }
 
+    Task(uint64_t arrivalTime, uint64_t workPeriod, uint64_t sleepPeriod,
+         uint64_t totalWorkTime, uint64_t needWorkTime, uint64_t deadlineTime) {
+        this->arrivalTime = arrivalTime;
+        this->workPeriod = workPeriod;
+        this->sleepPeriod = sleepPeriod;
+        this->totalWorkTime = totalWorkTime;
+        this->needWorkTime = needWorkTime;
+        this->deadlineTime = deadlineTime;
+        this->capacity = 1024 * workPeriod / (workPeriod + sleepPeriod);
+        this->isOvertime = false;
+        this->isFinish = false;
+    };
+
     bool checkDeadline(uint64_t currentTime);
 
     void updateWorkTime(uint64_t curCoreCapacity);

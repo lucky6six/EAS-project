@@ -1,5 +1,8 @@
 #include "simulator.h"
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <chrono>
 
 uint64_t Simultor::startTime = 0;
@@ -43,6 +46,33 @@ uint64_t Simultor::GetCurrentTime() {
     auto currentTime = currentTimeReal - startTime;
 
     return currentTime;
+}
+
+vector<Task*> Simultor::InputTasks(const string& path) {
+    vector<Task*> TaskList;
+    std::ifstream file(path);
+    string line;
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file" << std::endl;
+        return TaskList;
+    }
+
+    // 跳过第一行
+    std::getline(file, line);
+
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        string cell;
+        vector<string> row;
+
+        while (std::getline(ss, cell, ',')) {
+            row.push_back(cell);
+        }
+        Task* task = new Task(std::stoull(row[0]), std::stoull(row[1]), std::stoull(row[2]),
+                              std::stoull(row[3]), std::stoull(row[4]), std::stoull(row[5]));
+        TaskList.push_back(task);
+    }
+    return TaskList;
 }
 
 void Simultor::Run() {

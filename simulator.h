@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
 
 #include "cpu.h"
 #include "sched.h"
@@ -33,6 +34,7 @@ public:
     static const uint32_t MAX_CAP;
 
     Simultor();
+    vector<Task*> InputTasks(const string& path);
     void Run();
     static uint64_t GetCurrentTime();
 };
