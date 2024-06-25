@@ -22,6 +22,7 @@ struct CPUFreq
 };
 
 class EnergyModel;
+class PerfDomain;
 struct CPUFreq;
 class CPU
 {

@@ -11,8 +11,9 @@
 
 // TODO 获取所有perfDomain的链表  可以from simulator的this->perfDomains
 // 反正就是全局的pds
-vector<PerfDomain *> *getAllPerfDomains()
+static vector<PerfDomain *> *getAllPerfDomains()
 { /* code */
+    return NULL;
 }
 
 class Scheduler
