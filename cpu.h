@@ -39,7 +39,8 @@ private:
     Scheduler *scheduler;
 
     static void execTask(CPU *, Task *);
-    uint32_t CalcTotalCapacity();
+    uint32_t calcTotalCapacity();
+    void updateTasksWaitTime();
 public:
     static uint64_t timeSlice; /* us */
     static uint64_t GetTimeSilceMilli();

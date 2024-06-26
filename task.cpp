@@ -40,9 +40,24 @@ uint32_t Task::GetCapacity()
 uint64_t Task::GetArrivalTime()
 {
     return this->arrivalTime;
-};
+}
 
 uint64_t Task::GetTotalWorkTime()
 {
     return this->totalWorkTime;
-};
+}
+
+void Task::AddTotalWaitTime(uint64_t waitTime)
+{
+    this->totalWaitTime += waitTime;
+}
+
+uint64_t Task::GetTotalWaitTime() const
+{
+    return this->totalWaitTime;
+}
+
+uint32_t Task::GetTaskId()
+{
+    return this->id;
+}

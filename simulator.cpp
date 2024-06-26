@@ -5,6 +5,7 @@
 #include <iostream>
 #include <chrono>
 #include <map>
+#include <algorithm>
 
 #include "sched.h"
 #include "sched-eas.h"
@@ -56,9 +57,9 @@ void Simulator::configSimulator()
     }
 
     configFile.close();
-    this->littleCorePath = std::stoi(configMap["LITTLE_CORE_NUM"]);
-    this->middleCorePath = std::stoi(configMap["MIDDLE_CORE_NUM"]);
-    this->bigCorePath = std::stoi(configMap["BIG_CORE_NUM"]);
+    this->litteCoreNum = std::stoi(configMap["LITTLE_CORE_NUM"]);
+    this->middleCoreNum = std::stoi(configMap["MIDDLE_CORE_NUM"]);
+    this->bigCoreNum = std::stoi(configMap["BIG_CORE_NUM"]);
 
     this->littleCorePath = configMap["LITTLE_CORE_PATH"];
     this->middleCorePath = configMap["MIDDLE_CORE_PATH"];
@@ -67,7 +68,7 @@ void Simulator::configSimulator()
     this->taskTestPath = configMap["TEST_SAMPLE_PATH"];
 
 out_report_config:
-    std::cout << "|-- LITTLE_CORE_NUM: " << this->littelCoreNum << std::endl;
+    std::cout << "|-- LITTLE_CORE_NUM: " << this->litteCoreNum << std::endl;
     std::cout << "|-- MIDDLE_CORE_NUM: " << this->middleCoreNum << std::endl;
     std::cout << "|-- BIG_CORE_NUM: " << this->bigCoreNum << std::endl;
     std::cout << "|-- LITTLE_CORE_PATH: " << this->littleCorePath << std::endl;
@@ -93,7 +94,7 @@ Simulator::Simulator()
 
     /* Construct Perf Domain and CPU */
     printf("Build Litte-Core PD\n");
-    this->perfDomains.push_back(new PerfDomain(littelCoreNum, littleCore));
+    this->perfDomains.push_back(new PerfDomain(litteCoreNum, littleCore));
     printf("Build Middle-Core PD\n");
     this->perfDomains.push_back(new PerfDomain(middleCoreNum, middleCore));
     printf("Build Big-Core PD\n");
@@ -166,10 +167,10 @@ void Simulator::startAssignTask(vector<Task*> &TaskList) {
                 for (auto taskIt = TaskList.begin(); taskIt != TaskList.end(); ++taskIt) {
                     auto curTime = curSim->GetCurrentTime();
                     if (curTime >= (*taskIt)->GetArrivalTime()) {
-                        printf("New task %p %d\n", *taskIt, (*taskIt)->id);
                         auto targetCPU = curSim->scheduler->SchedNewTask(*taskIt);
                         if (targetCPU != nullptr) {
                             // Task assigned successfully, just erare it
+                            printf("New task %p %d\n", *taskIt, (*taskIt)->id);
                             TaskList.erase(taskIt);
                             break;
                         }
@@ -250,7 +251,7 @@ void Statistics::ReportTotalPower()
 
 void Statistics::ReportTotalRuntime()
 {
-    std::cout << "Total Runtime: " << Statistics::totalRuntime << " us" << std::endl;
+    std::cout << "Total Runtime: " << Statistics::totalRuntime / 1000 << " ms" << std::endl;
 }
 
 void Statistics::ReportDelayTaskNum()
@@ -267,8 +268,22 @@ void Statistics::ReportDelayTaskNum()
 void Statistics::ReportTotalWaitTime()
 {
     uint64_t totalWaitTime = 0;
-    /* TODO */
-    std::cout << "TODO: Total Wait Time: " << totalWaitTime << " us" << std::endl;
+    uint64_t totalTaskNum = Statistics::finishTasks.size();
+    for (auto task: Statistics::finishTasks) {
+        totalWaitTime += task->GetTotalWaitTime();
+    }
+
+    std::cout << "Average Total Wait Time: " <<
+        totalWaitTime / 1000 / totalTaskNum << " ms per task " << std::endl;
+
+    std::sort(Statistics::finishTasks.begin(), Statistics::finishTasks.end(), [](Task *a, Task *b) {
+        return a->GetTaskId() < b->GetTaskId();
+    });
+
+    for (auto task: Statistics::finishTasks) {
+        std::cout << "|-- " << "Task " << task->GetTaskId() << " Wait Time: " <<
+            task->GetTotalWaitTime() / 1000 << " ms" << std::endl;
+    }
 }
 
 void Statistics::ReportAll()

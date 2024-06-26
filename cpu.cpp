@@ -50,6 +50,8 @@ void CPU::execTask(CPU *curCPU, Task *task)
     power = task->CalculateRatio(curCPU->GetCurCapacity()) *
         CPU::GetCPUPower(curCPU) * CPU::GetTimeSilceMilli();
     Statistics::AddTotalPower(power);
+    /* Update tasks's wait_time */
+    curCPU->updateTasksWaitTime();
 }
 
 void CPU::Run()
@@ -62,7 +64,8 @@ void CPU::Run()
             if (!curCPU->tasksQueue.empty()) {
                 Task *task = curCPU->tasksQueue.front();
                 curCPU->execTask(curCPU, task);
-                printf("task %d in cpu %d total_time: %lu\n", task->id, curCPU->GetCPUId(), task->GetTotalWorkTime());
+                printf("task %d in cpu %d total_time: %lu\n",
+                    task->GetTaskId(), curCPU->GetCPUId(), task->GetTotalWorkTime());
             }
             std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
             curCPU->scheduler->SchedCpu(curCPU);
@@ -87,7 +90,7 @@ Task *CPU::TopTask()
     return this->tasksQueue.front();
 }
 
-uint32_t CPU::CalcTotalCapacity()
+uint32_t CPU::calcTotalCapacity()
 {
     queue<Task *> tmpQueue;
     uint32_t totalCap = 0;
@@ -112,10 +115,43 @@ uint32_t CPU::CalcTotalCapacity()
 
     return totalCap;
 }
+
+void CPU::updateTasksWaitTime()
+{
+    queue<Task *> tmpQueue;
+    uint64_t totalWaitTime = 0;
+    Task *task;
+
+    if (!this->tasksQueue.empty())
+    {
+        /* tasksQueue->front() is running, just step over */
+        task = this->tasksQueue.front();
+        tasksQueue.pop();
+        tmpQueue.push(task);
+    }
+
+    /* Tranverse the rest of tasksQueue */
+    while (!this->tasksQueue.empty())
+    {
+        task = this->tasksQueue.front();
+        tasksQueue.pop();
+        task->AddTotalWaitTime(CPU::timeSlice);
+        tmpQueue.push(task);
+    }
+
+    /* Reconstruct the tasksQueue */
+    while (!tmpQueue.empty())
+    {
+        task = tmpQueue.front();
+        tmpQueue.pop();
+        this->tasksQueue.push(task);
+    }
+}
+
 // 重新计算task队列中的capacity和
 void CPU::RebuildCapacity()
 {
-    this->capacity = this->CalcTotalCapacity();
+    this->capacity = this->calcTotalCapacity();
     return;
 }
 

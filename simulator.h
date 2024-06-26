@@ -20,7 +20,7 @@ private:
     static uint64_t startTime; /* us */
     thread allocTaskThread;
 
-    uint32_t littelCoreNum = 3;
+    uint32_t litteCoreNum = 3;
     uint32_t middleCoreNum = 4;
     uint32_t bigCoreNum = 1;
     string littleCorePath = "./cpu-models/LittleCoreFreq.csv";

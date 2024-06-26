@@ -17,6 +17,7 @@ private:
     /* us为单位，0-10ms */
     uint64_t sleepPeriod;   /* us */
     uint64_t totalWorkTime; /* us */
+    uint64_t totalWaitTime; /* us */
     /* us为单位，50-500ms */
     uint64_t needWorkTime; /* us */
     /* us为单位，大于 needWorkTime / workPeriod * (workPeriod + sleepPeriod) */
@@ -48,6 +49,7 @@ public:
         this->isOvertime = false;
         this->isFinish = false;
         this->id = newid++;
+        this->totalWaitTime = 0;
     };
 
     void CheckDeadline(uint64_t currentTime);
@@ -71,6 +73,12 @@ public:
     uint64_t GetArrivalTime();
 
     uint64_t GetTotalWorkTime();
+
+    void AddTotalWaitTime(uint64_t waitTime);
+
+    uint64_t GetTotalWaitTime() const;
+
+    uint32_t GetTaskId();
 
     ~Task() = default;
 };
