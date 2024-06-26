@@ -68,6 +68,8 @@ public:
 
 
     uint64_t GetTotalWorkTime();
+
+    ~Task() = default;
 };
 
 #endif

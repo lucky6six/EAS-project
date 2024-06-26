@@ -30,6 +30,7 @@ public:
     virtual CPU *SchedNewTask(Task *t) = 0;
     // 调度该cpu队首task
     virtual CPU *SchedCpu(CPU *cpu) = 0;
+    virtual ~Scheduler() = default;
 };
 
 #endif

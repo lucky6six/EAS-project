@@ -116,6 +116,21 @@ uint32_t CPU::GetCapacity()
     return this->capacity;
 }
 
+CPU::~CPU()
+{
+    if (cpuThread.joinable()) {
+        cpuThread.join();
+    }
+
+    while (!tasksQueue.empty()) {
+        Task* task = tasksQueue.front();
+        tasksQueue.pop();
+        delete task;
+    }
+
+    delete curCPUFreq;
+}
+
 PerfDomain *CPU::GetPerfDomain()
 {
     return this->perfDomain;

@@ -198,6 +198,32 @@ void Simulator::passSchedulerToCPU(Scheduler *sched)
     }
 }
 
+Simulator::~Simulator()
+{
+    if(allocTaskThread.joinable()) {
+        allocTaskThread.join();
+    }
+
+    delete energyModels;
+
+    delete scheduler;
+
+    for (auto* perfDomain : perfDomains) {
+        delete perfDomain;
+    }
+    perfDomains.clear();
+
+    for (auto* cpu : cpus) {
+        delete cpu;
+    }
+    cpus.clear();
+
+    for (auto* task : taskList) {
+        delete task;
+    }
+    taskList.clear();
+}
+
 uint64_t Statistics::totalRuntime = 0;
 double Statistics::totalPower = 0;
 vector<Task*> Statistics::finishTasks = {};

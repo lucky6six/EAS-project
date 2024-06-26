@@ -42,6 +42,7 @@ public:
     Simulator();
     void Run();
     static uint64_t GetCurrentTime();
+    ~Simulator();
 };
 
 class Statistics

@@ -61,6 +61,8 @@ public:
     uint32_t GetCPUId() { return id; }
     queue<Task*>& GetTaskQueue() { return tasksQueue; }
     bool IsEmpty() { return tasksQueue.empty(); }
+
+    ~CPU();
 };
 
 enum CPUType
