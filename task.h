@@ -28,13 +28,15 @@ private:
 public:
     uint32_t id;
 
-    Task() {
+    Task()
+    {
         isOvertime = false;
         isFinish = false;
     }
 
     Task(uint64_t arrivalTime, uint64_t workPeriod, uint64_t sleepPeriod,
-         uint64_t totalWorkTime, uint64_t needWorkTime, uint64_t deadlineTime) {
+         uint64_t totalWorkTime, uint64_t needWorkTime, uint64_t deadlineTime)
+    {
         static uint32_t newid = 0;
         this->arrivalTime = arrivalTime;
         this->workPeriod = workPeriod;
@@ -54,18 +56,19 @@ public:
 
     uint32_t GetCapacity();
 
-    bool IsTaskFinish() {
+    bool IsTaskFinish()
+    {
         return isFinish;
     }
 
-    bool IsTaskDelay() {
+    bool IsTaskDelay()
+    {
         return isOvertime;
     }
 
     double CalculateRatio(uint64_t);
 
     uint64_t GetArrivalTime();
-
 
     uint64_t GetTotalWorkTime();
 

@@ -10,6 +10,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
     CPU *targetCPU = nullptr;
     CPUFreq *curFreq;
     CPU *targetCPUinPd = nullptr;
+    CPU *minCapCPU = nullptr;
     // 当前pd的最小cpu cap
     uint32_t minCPUCapacity;
     // 迁移的实现为先pop task，再类似新task进入系统一样部署
@@ -18,28 +19,37 @@ CPU *EasScheduler::findNextCpu(Task *t)
     double powerOld = 0;
     double powerNew = 0;
     uint32_t capSumInPd = 0;
-    vector<CPUFreq*> *em;
+    vector<CPUFreq *> *em;
     CPUFreq *expectFreq;
     uint32_t expectCapacity;
 
     // 遍历每个pd，评估最低能效开销
-    for (auto pd : *perfDomains) {
+    for (auto pd : *perfDomains)
+    {
         curFreq = pd->GetCurCPUFreq();
         minCPUCapacity = curFreq->capacity;
         capSumInPd = 0;
         em = pd->GetEnergyModel();
         // 遍历pd中所有cpu，找到capacity最小的cpu
-        for (auto cpu : pd->GetCPUS()) {
+        for (auto cpu : pd->GetCPUS())
+        {
             capSumInPd += cpu->GetCapacity();
-            if (cpu->GetCapacity() < minCPUCapacity) {
+            if (cpu->GetCapacity() < minCPUCapacity)
+            {
                 minCPUCapacity = cpu->GetCapacity();
                 targetCPUinPd = cpu;
             }
         }
-        if (targetCPUinPd == nullptr) {
+        if (targetCPUinPd == nullptr)
+        {
             /* Current PerfDomain: No Available CPU */
             continue;
         }
+        if (minCapCPU == nullptr || minCPUCapacity < minCapCPU->GetCapacity())
+        {
+            minCapCPU = targetCPUinPd;
+        }
+
         // 计算原能耗开销
         powerOld = static_cast<double>(capSumInPd) / curFreq->capacity * curFreq->power;
         //  计算部署到targetCPUinPd上的能耗开销
@@ -47,24 +57,30 @@ CPU *EasScheduler::findNextCpu(Task *t)
         expectCapacity = targetCPUinPd->GetCapacity() + t->GetCapacity();
         expectFreq = curFreq;
         // 是否要提升频点
-        if (expectCapacity > curFreq->capacity) {
+        if (expectCapacity > curFreq->capacity)
+        {
             // 找到预期频点
             expectFreq = pd->getSuitableFreq(expectCapacity);
             // 当expectFreq为nullptr时，说明没有合适的频点，不考虑这个pd
-            if (expectFreq == nullptr) {
+            if (expectFreq == nullptr)
+            {
                 continue;
             }
         }
         // 计算能耗开销
         powerNew = static_cast<double>(capSumInPd + t->GetCapacity()) /
-            expectFreq->capacity * expectFreq->power;
+                   expectFreq->capacity * expectFreq->power;
         double power = powerNew - powerOld;
-        if (power < cur_min_power) {
+        if (power < cur_min_power)
+        {
             cur_min_power = power;
             targetCPU = targetCPUinPd;
         }
     }
-
+    if (targetCPU == nullptr)
+    {
+        targetCPU = minCapCPU;
+    }
     return targetCPU;
 }
 
@@ -77,7 +93,8 @@ Task *EasScheduler::findTaskToSched(CPU *cpu)
 CPU *EasScheduler::schedTask(Task *t)
 {
     CPU *c = findNextCpu(t);
-    if (c != nullptr) {
+    if (c != nullptr)
+    {
         c->AddTask(t);
         c->GetPerfDomain()->RebuildPerfDomain();
     }
@@ -89,7 +106,8 @@ CPU *EasScheduler::SchedNewTask(Task *t)
 {
     std::lock_guard<mutex> guard(this->schedLock);
     CPU *c = findNextCpu(t);
-    if (c != nullptr) {
+    if (c != nullptr)
+    {
         c->AddTask(t);
         c->GetPerfDomain()->RebuildPerfDomain();
     }
@@ -103,14 +121,16 @@ CPU *EasScheduler::SchedCpu(CPU *cpu)
 {
     Task *t;
     CPU *toCPU = nullptr;
-    if (cpu->IsEmpty()) {
+    if (cpu->IsEmpty())
+    {
         return nullptr;
     }
 
     std::lock_guard<mutex> guard(this->schedLock);
     t = cpu->PopTask();
     cpu->GetPerfDomain()->RebuildPerfDomain();
-    if (t->IsTaskFinish()) {
+    if (t->IsTaskFinish())
+    {
         Statistics::AddToFinishList(t);
         return nullptr;
     }
