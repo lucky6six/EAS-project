@@ -19,7 +19,7 @@ double Task::CalculateRatio(uint64_t CoreCap)
         tmpCap = this->capacity;
     }
 
-    return static_cast<double>(tmpCap) / Simulator::MAX_CAP;
+    return static_cast<double>(tmpCap) / CoreCap;
 }
 
 void Task::UpdateWorkTime(uint64_t CoreCap)

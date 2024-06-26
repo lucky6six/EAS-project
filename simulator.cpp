@@ -245,7 +245,7 @@ void Statistics::AddTotalPower(double power)
 
 void Statistics::ReportTotalPower()
 {
-    std::cout << "Total Power: " << Statistics::totalPower << " mW" << std::endl;
+    std::cout << "Total Power: " << Statistics::totalPower << " uJ" << std::endl;
 }
 
 void Statistics::ReportTotalRuntime()

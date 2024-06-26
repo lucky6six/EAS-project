@@ -31,7 +31,6 @@ private:
     static uint32_t cpusid;
     uint32_t id;
     EnergyModel *energyModel; /** Which EnergyModel it belongs to */
-    // TODO:初始化时设置该cpu位于哪个PerfDomain
     PerfDomain *perfDomain; /** Which PerfDomain it belongs to */
     thread cpuThread;
     queue<Task *> tasksQueue;
@@ -43,6 +42,7 @@ private:
     uint32_t CalcTotalCapacity();
 public:
     static uint64_t timeSlice; /* us */
+    static uint64_t GetTimeSilceMilli();
 
     CPU() {}
     CPU(PerfDomain *perfDomain, EnergyModel *energyModel);

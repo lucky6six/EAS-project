@@ -29,6 +29,11 @@ uint32_t CPU::GetCurCapacity()
     return this->curCPUFreq->capacity;
 }
 
+uint64_t CPU::GetTimeSilceMilli()
+{
+    return CPU::timeSlice / 1000;
+}
+
 double CPU::GetCPUPower(CPU *cpu)
 {
     return cpu->GetCPUFreq()->power;
@@ -37,12 +42,13 @@ double CPU::GetCPUPower(CPU *cpu)
 void CPU::execTask(CPU *curCPU, Task *task)
 {
     auto currentTime = Simulator::GetCurrentTime();
-    double power;
+    double power; /* 微焦耳 */
     /* Calculate cost time & capacity */
     task->CheckDeadline(currentTime);
     task->UpdateWorkTime(curCPU->GetCurCapacity());
     /* Calculate power const */
-    power = task->CalculateRatio(curCPU->GetCurCapacity()) * CPU::GetCPUPower(curCPU);
+    power = task->CalculateRatio(curCPU->GetCurCapacity()) *
+        CPU::GetCPUPower(curCPU) * CPU::GetTimeSilceMilli();
     Statistics::AddTotalPower(power);
 }
 
