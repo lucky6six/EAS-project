@@ -72,14 +72,8 @@ def main():
 
   #parser = argparse.ArgumentParser(description="Set trace generator")
   ## 添加 -m 或 --message 选项
-  #parser.add_argument('-n', '--num', type=int, help='Number of period', default=10)
-  #parser.add_argument('-a', '--all', action='store_true', help='all model')
-  #parser.add_argument('-g', '--gc', action='store_true', help='calc over and gc and then calc')
-  #parser.add_argument('-x', '--xall', action='store_true', help='run other before this')
-  #parser.add_argument('-b', '--before', type=str, help='run before test',default='')
-  #parser.add_argument('-v', '--vmtouch', action='store_true', help='use vmtouch to keep')
-  #parser.add_argument('-k', '--keep', action='store_true', help='keep alive')
-  #parser.add_argument('-q', '--quite', action='store_true', help='keep quite')
+  #parser.add_argument('-n', '--num', type=int, help='', default=10)
+  #parser.add_argument('-a', '--all', action='store_true', help='')
   ## 解析命令行参数
   #args = vars(parser.parse_args())
 
