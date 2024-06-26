@@ -201,9 +201,9 @@ void Simulator::passSchedulerToCPU(Scheduler *sched)
 
 Simulator::~Simulator()
 {
-    if(allocTaskThread.joinable()) {
-        allocTaskThread.join();
-    }
+    // if(allocTaskThread.joinable()) {
+    //     allocTaskThread.join();
+    // }
 
     delete energyModels;
 

@@ -191,6 +191,14 @@ EnergyModel::EnergyModel(enum CPUType type, string &path)
     this->num = this->cpufreqs.size();
 }
 
+EnergyModel::~EnergyModel()
+{
+    for (auto cpufreq : this->cpufreqs)
+    {
+        delete cpufreq;
+    }
+}
+
 vector<CPUFreq *> *EnergyModel::GetFreqs()
 {
     return &this->cpufreqs;

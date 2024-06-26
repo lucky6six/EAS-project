@@ -82,12 +82,10 @@ private:
 
 public:
     EnergyModel() {}
-
     EnergyModel(enum CPUType type);
-
     EnergyModel(enum CPUType type, string &path);
-
     vector<CPUFreq*> *GetFreqs();
+    ~EnergyModel();
 };
 
 class PerfDomain
