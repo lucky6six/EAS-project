@@ -39,3 +39,10 @@
 
 # vscode
 .vscode/
+
+# Clion
+.DS_Store
+.idea/
+ cmake-build-debug/
+ cpu.csv
+ cpu.numbers
