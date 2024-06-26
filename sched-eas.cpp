@@ -11,6 +11,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
     CPUFreq *curFreq;
     CPU *targetCPUinPd = nullptr;
     CPU *minCapCPU = nullptr;
+    uint32_t minCap = 10000000;
     // 当前pd的最小cpu cap
     uint32_t minCPUCapacity;
     // 迁移的实现为先pop task，再类似新task进入系统一样部署
@@ -34,6 +35,11 @@ CPU *EasScheduler::findNextCpu(Task *t)
         for (auto cpu : pd->GetCPUS())
         {
             capSumInPd += cpu->GetCapacity();
+            if (cpu->GetCapacity() < minCap)
+            {
+                minCap = cpu->GetCapacity();
+                minCapCPU = cpu;
+            }
             if (cpu->GetCapacity() < minCPUCapacity)
             {
                 minCPUCapacity = cpu->GetCapacity();
@@ -45,11 +51,6 @@ CPU *EasScheduler::findNextCpu(Task *t)
             /* Current PerfDomain: No Available CPU */
             continue;
         }
-        if (minCapCPU == nullptr || minCPUCapacity < minCapCPU->GetCapacity())
-        {
-            minCapCPU = targetCPUinPd;
-        }
-
         // 计算原能耗开销
         powerOld = static_cast<double>(capSumInPd) / curFreq->capacity * curFreq->power;
         //  计算部署到targetCPUinPd上的能耗开销
