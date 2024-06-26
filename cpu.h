@@ -106,6 +106,7 @@ public:
     // 获取可调整频点列表
     vector<CPUFreq*> *GetEnergyModel();
     void RebuildPerfDomain();
+    ~PerfDomain();
     CPUFreq *getSuitableFreq(uint32_t expectCapacity);
 };
 

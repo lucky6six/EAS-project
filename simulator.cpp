@@ -293,4 +293,12 @@ void Statistics::ReportAll()
     ReportTotalRuntime();
     ReportDelayTaskNum();
     ReportTotalWaitTime();
+    ClearFinishTasks();
 }
+
+void Statistics::ClearFinishTasks() {
+    for(auto task : finishTasks) {
+        delete task;
+    }
+    finishTasks.clear();
+};

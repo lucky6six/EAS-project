@@ -61,6 +61,7 @@ public:
     static void ReportDelayTaskNum();
     static void ReportTotalWaitTime();
     static void ReportAll();
+    static void ClearFinishTasks();    
 };
 
 #endif

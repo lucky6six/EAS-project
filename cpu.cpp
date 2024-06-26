@@ -142,7 +142,7 @@ CPU::~CPU()
         delete task;
     }
 
-    delete curCPUFreq;
+    // delete curCPUFreq;
 }
 
 PerfDomain *CPU::GetPerfDomain()
@@ -269,4 +269,8 @@ CPUFreq *PerfDomain::getSuitableFreq(uint32_t expectCapacity)
         }
     }
     return ret;
+}
+
+PerfDomain::~PerfDomain() {
+    delete energyModel;
 }
