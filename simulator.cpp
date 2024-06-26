@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -41,8 +42,8 @@ void Simulator::configSimulator()
     std::ifstream configFile(this->configFile);
     std::cout << "Reading config file ..." << std::endl;
     if (!configFile.is_open()) {
-        std::cerr << "Can not open file " << this->configFile << "!" << std::endl;
-        return;
+        std::cout << "Can not open config file " << this->configFile << ", using default configuartion" << std::endl;
+        goto out_report_config;
     }
 
     while (std::getline(configFile, line)) {
@@ -65,6 +66,7 @@ void Simulator::configSimulator()
 
     this->taskTestPath = configMap["TEST_SAMPLE_PATH"];
 
+out_report_config:
     std::cout << "|-- LITTLE_CORE_NUM: " << this->littelCoreNum << std::endl;
     std::cout << "|-- MIDDLE_CORE_NUM: " << this->middleCoreNum << std::endl;
     std::cout << "|-- BIG_CORE_NUM: " << this->bigCoreNum << std::endl;
