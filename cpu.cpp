@@ -1,4 +1,3 @@
-#include <chrono>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
@@ -69,7 +68,7 @@ void CPU::Run()
             }
             std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
             curCPU->scheduler->SchedCpu(curCPU);
-        } });
+        }});
     this->cpuThread.detach();
 }
 
@@ -92,25 +91,10 @@ Task *CPU::TopTask()
 
 uint32_t CPU::calcTotalCapacity()
 {
-    queue<Task *> tmpQueue;
     uint32_t totalCap = 0;
-    Task *task;
 
-    /* We need to tranverse the tasksQueue, hence pop it out into tmpQueue */
-    while (!this->tasksQueue.empty())
-    {
-        task = this->tasksQueue.front();
-        tasksQueue.pop();
-        totalCap += task->GetCapacity();
-        tmpQueue.push(task);
-    }
-
-    /* Reconstruct the tasksQueue */
-    while (!tmpQueue.empty())
-    {
-        task = tmpQueue.front();
-        tmpQueue.pop();
-        this->tasksQueue.push(task);
+    for (auto it = this->tasksQueue.begin(); it != this->tasksQueue.end(); ++it) {
+        totalCap += (*it)->GetCapacity();
     }
 
     return totalCap;
@@ -118,33 +102,17 @@ uint32_t CPU::calcTotalCapacity()
 
 void CPU::updateTasksWaitTime()
 {
-    queue<Task *> tmpQueue;
+    Queue<Task *> tmpQueue;
     uint64_t totalWaitTime = 0;
     Task *task;
 
-    if (!this->tasksQueue.empty())
-    {
-        /* tasksQueue->front() is running, just step over */
-        task = this->tasksQueue.front();
-        tasksQueue.pop();
-        tmpQueue.push(task);
-    }
-
-    /* Tranverse the rest of tasksQueue */
-    while (!this->tasksQueue.empty())
-    {
-        task = this->tasksQueue.front();
-        tasksQueue.pop();
+    for (auto it = this->tasksQueue.begin(); it != this->tasksQueue.end(); ++it) {
+        if (it == this->tasksQueue.begin()) {
+            continue;
+        }
+        task = *it;
         task->AddTotalWaitTime(CPU::timeSlice);
         tmpQueue.push(task);
-    }
-
-    /* Reconstruct the tasksQueue */
-    while (!tmpQueue.empty())
-    {
-        task = tmpQueue.front();
-        tmpQueue.pop();
-        this->tasksQueue.push(task);
     }
 }
 
@@ -278,7 +246,7 @@ void PerfDomain::RebuildPerfDomain()
     this->curCPUFreq = this->getSuitableFreq(max_capacity);
     if (this->curCPUFreq == nullptr)
     {
-        printf("beyond freq\n");
+        // printf("beyond freq\n");
         this->curCPUFreq = this->GetEnergyModel()->back();
     }
     for (auto cpu : this->cpus)
@@ -286,6 +254,7 @@ void PerfDomain::RebuildPerfDomain()
         cpu->SetFreq(this->curCPUFreq);
     }
 }
+
 // nullptr说明没有合适的频点
 CPUFreq *PerfDomain::getSuitableFreq(uint32_t expectCapacity)
 {

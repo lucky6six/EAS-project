@@ -2,14 +2,13 @@
 #define __CPU_H__
 
 #include <cstdint>
-#include <queue>
 #include <thread>
 #include <vector>
 #include <string>
 
 #include "task.h"
+#include "queue.h"
 
-using std::queue;
 using std::string;
 using std::thread;
 using std::vector;
@@ -33,7 +32,7 @@ private:
     EnergyModel *energyModel; /** Which EnergyModel it belongs to */
     PerfDomain *perfDomain; /** Which PerfDomain it belongs to */
     thread cpuThread;
-    queue<Task *> tasksQueue;
+    Queue<Task *> tasksQueue;
     CPUFreq *curCPUFreq;  // 当前的频点（freq,pwr,cap）
     uint32_t capacity; // 当前的算力负载
     Scheduler *scheduler;
@@ -60,7 +59,7 @@ public:
     void SetScheduler(Scheduler *);
     static double GetCPUPower(CPU *);
     uint32_t GetCPUId() { return id; }
-    queue<Task*>& GetTaskQueue() { return tasksQueue; }
+    Queue<Task *>& GetTaskQueue() { return tasksQueue; }
     bool IsEmpty() { return tasksQueue.empty(); }
 
     ~CPU();

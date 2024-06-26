@@ -9,5 +9,5 @@ add_executable(eas
     simulator.cpp
     task.cpp
     sched-eas.cpp
-    sched-opt.h
+    sched-opt.cpp
 )
