@@ -20,18 +20,20 @@ private:
     static uint64_t startTime; /* us */
     thread allocTaskThread;
 
-    const uint32_t NUM_LITTEL_CORE = 0;
-    const uint32_t NUM_MIDDLE_CORE = 0;
-    const uint32_t NUM_BIG_CORE = 1;
-    const string LittleCorePath = "./cpu-models/LittleCoreFreq.csv";
-    const string MiddleCorePath = "./cpu-models/MiddleCoreFreq.csv";
-    const string BigCorePath = "./cpu-models/BigCoreFreq.csv";
-    const string taskTestPath = "./task-tests/taskSample.csv";
+    uint32_t littelCoreNum = 3;
+    uint32_t middleCoreNum = 4;
+    uint32_t bigCoreNum = 1;
+    string littleCorePath = "./cpu-models/LittleCoreFreq.csv";
+    string middleCorePath = "./cpu-models/MiddleCoreFreq.csv";
+    string bigCorePath = "./cpu-models/BigCoreFreq.csv";
+    string taskTestPath = "./task-tests/taskSample.csv";
+    const string configFile = "./simulator.config";
 
     static uint64_t getCurrentTimeReal();
     void passSchedulerToCPU(Scheduler *);
     void inputTasks(const string& path);
-    void startAllocTask(vector<Task*> &TaskList);
+    void startAssignTask(vector<Task*> &TaskList);
+    void configSimulator();
 public:
     static const uint32_t MAX_CAP;
     static bool finishFlag;

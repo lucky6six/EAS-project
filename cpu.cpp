@@ -14,12 +14,14 @@ using std::istringstream;
 uint32_t CPU::cpusid = 0;
 uint64_t CPU::timeSlice = 20000; /* =20ms */
 
-// TODO:初始化 要有curFreq(建议最小的)，perfDomain（belong_to），capacity（0）
+// 初始化 curCPUFreq -> minCPUFreq，perfDomain（belong_to），capacity（0）
 CPU::CPU(PerfDomain *pd, EnergyModel *em)
 {
     this->perfDomain = pd;
     this->energyModel = em;
     this->id = cpusid++;
+    this->capacity = 0;
+    this->curCPUFreq = em->GetFreqs()->front();
 }
 
 uint32_t CPU::GetCurCapacity()
@@ -48,12 +50,12 @@ void CPU::Run()
 {
     auto curCPU = this;
     this->cpuThread = thread([curCPU]{
-        std::cout << "cpu " << curCPU->GetCPUId() << " Start Run" << std::endl;
+        std::cout << "cpu " << curCPU->GetCPUId() << " Start to Run" << std::endl;
         while(!Simulator::finishFlag) {
             if (!curCPU->tasksQueue.empty()) {
                 Task *task = curCPU->tasksQueue.front();
                 curCPU->execTask(curCPU, task);
-                printf("task %p in cpu %d total_time: %lu\n", task, curCPU->GetCPUId(), task->GetTotalWorkTime());
+                printf("task %d in cpu %d total_time: %lu\n", task->id, curCPU->GetCPUId(), task->GetTotalWorkTime());
             }
             std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
             curCPU->scheduler->SchedCpu(curCPU);
@@ -138,7 +140,7 @@ EnergyModel::EnergyModel(CPUType type)
     this->type = type;
 }
 
-EnergyModel::EnergyModel(enum CPUType type, const string &path)
+EnergyModel::EnergyModel(enum CPUType type, string &path)
 {
     this->type = type;
     ifstream file(path);
@@ -151,13 +153,13 @@ EnergyModel::EnergyModel(enum CPUType type, const string &path)
         while (std::getline(ss, cell, ',')) {
             row.push_back(cell);
         }
-        CPUFreq cpuFreq = {static_cast<uint32_t>(std::stoul(row[0])), std::stod(row[1]), static_cast<uint32_t>(std::stoul(row[2]))};
+        CPUFreq *cpuFreq = new CPUFreq{static_cast<uint32_t>(std::stoul(row[0])), std::stod(row[1]), static_cast<uint32_t>(std::stoul(row[2]))};
         this->cpufreqs.push_back(cpuFreq);
     }
     this->num = this->cpufreqs.size();
 }
 
-vector<CPUFreq> *EnergyModel::GetFreqs()
+vector<CPUFreq*> *EnergyModel::GetFreqs()
 {
     return &this->cpufreqs;
 }
@@ -178,7 +180,7 @@ PerfDomain::PerfDomain(uint32_t cpuNum, EnergyModel *energyModel)
     }
 
     // 初始化频点 -> minCPUFreq
-    this->curCPUFreq = &cpufreqs[0];
+    this->curCPUFreq = cpufreqs[0];
 }
 
 vector<CPU *> PerfDomain::GetCPUS()
@@ -191,7 +193,7 @@ CPUFreq *PerfDomain::GetCurCPUFreq()
     return this->curCPUFreq;
 }
 
-vector<CPUFreq> *PerfDomain::GetEM()
+vector<CPUFreq*> *PerfDomain::GetEnergyModel()
 {
     return this->energyModel->GetFreqs();
 }
@@ -214,10 +216,10 @@ void PerfDomain::RebuildPerfDomain()
 CPUFreq *PerfDomain::getSuitableFreq(uint32_t expectCapacity)
 {
     CPUFreq *ret = nullptr;
-    vector<CPUFreq> *em = this->GetEM();
+    auto em = this->GetEnergyModel();
     for (auto cpufreq:  *em) {
-        if (cpufreq.capacity >= expectCapacity) {
-            ret = &cpufreq;
+        if (cpufreq->capacity >= expectCapacity) {
+            ret = cpufreq;
             break;
         }
     }

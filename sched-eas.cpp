@@ -18,7 +18,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
     double powerOld = 0;
     double powerNew = 0;
     uint32_t capSumInPd = 0;
-    vector<CPUFreq> *EM;
+    vector<CPUFreq*> *em;
     CPUFreq *expectFreq;
     uint32_t expectCapacity;
 
@@ -27,7 +27,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
         curFreq = pd->GetCurCPUFreq();
         minCPUCapacity = curFreq->capacity;
         capSumInPd = 0;
-        EM = pd->GetEM();
+        em = pd->GetEnergyModel();
         // 遍历pd中所有cpu，找到capacity最小的cpu
         for (auto cpu : pd->GetCPUS()) {
             capSumInPd += cpu->GetCapacity();
@@ -101,11 +101,8 @@ CPU *EasScheduler::SchedNewTask(Task *t)
 // task迁移已在函数内完成
 CPU *EasScheduler::SchedCpu(CPU *cpu)
 {
-#ifdef SCHED_DEBUG
-    printf("%s: cpuid: %u taskNum: %lu\n", __func__, cpu->GetCPUId(), cpu->GetTaskQueue().size());
-#endif
     Task *t;
-    CPU *toCPU;
+    CPU *toCPU = nullptr;
     if (cpu->IsEmpty()) {
         return nullptr;
     }
@@ -113,22 +110,11 @@ CPU *EasScheduler::SchedCpu(CPU *cpu)
     std::lock_guard<mutex> guard(this->schedLock);
     t = cpu->PopTask();
     cpu->GetPerfDomain()->RebuildPerfDomain();
-#ifdef SCHED_DEBUG
-    printf("Rebuild PerfDomain Done\n");
-#endif
     if (t->IsTaskFinish()) {
-#ifdef SCHED_DEBUG
-    printf("Add To FinishList\n");
-#endif
         Statistics::AddToFinishList(t);
-#ifdef SCHED_DEBUG
-    printf("Add To FinishList Done\n");
-#endif
         return nullptr;
     }
     toCPU = schedTask(t);
-#ifdef SCHED_DEBUG
-    printf("%s: Sched Task Done\n", __func__);
-#endif
+
     return toCPU;
 }

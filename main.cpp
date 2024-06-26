@@ -5,7 +5,7 @@
 #include "cpu.h"
 #include "simulator.h"
 
-void test() {
+void startSimulate() {
     Simulator simultor;
     simultor.Run();
     while (!Simulator::finishFlag) {
@@ -15,8 +15,7 @@ void test() {
 }
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    test();
+    startSimulate();
 
     return 0;
 }

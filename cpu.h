@@ -74,7 +74,7 @@ class EnergyModel
 {
 private:
     uint32_t num;
-    vector<CPUFreq> cpufreqs;
+    vector<CPUFreq*> cpufreqs;
     string path;
     enum CPUType type;
 
@@ -83,9 +83,9 @@ public:
 
     EnergyModel(enum CPUType type);
 
-    EnergyModel(enum CPUType type, const string &path);
+    EnergyModel(enum CPUType type, string &path);
 
-    vector<CPUFreq> *GetFreqs();
+    vector<CPUFreq*> *GetFreqs();
 };
 
 class PerfDomain
@@ -102,7 +102,7 @@ public:
     // 获取当前频点
     CPUFreq *GetCurCPUFreq();
     // 获取可调整频点列表
-    vector<CPUFreq> *GetEM();
+    vector<CPUFreq*> *GetEnergyModel();
     void RebuildPerfDomain();
     CPUFreq *getSuitableFreq(uint32_t expectCapacity);
 };

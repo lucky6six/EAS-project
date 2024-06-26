@@ -27,6 +27,7 @@ void Task::UpdateWorkTime(uint64_t CoreCap)
     this->totalWorkTime += CPU::timeSlice * CalculateRatio(CoreCap);
 
     if (this->totalWorkTime > this->needWorkTime) {
+        printf("task %d finish\n", this->id);
         this->isFinish = true;
     }
 }
