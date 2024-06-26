@@ -45,6 +45,7 @@ CPU *EasScheduler::findNextCpu(Task *t)
         //  计算部署到targetCPUinPd上的能耗开销
         //  部署后cap
         expectCapacity = targetCPUinPd->GetCapacity() + t->GetCapacity();
+        expectFreq = curFreq;
         // 是否要提升频点
         if (expectCapacity > curFreq->capacity) {
             // 找到预期频点
@@ -53,8 +54,8 @@ CPU *EasScheduler::findNextCpu(Task *t)
             if (expectFreq == nullptr) {
                 continue;
             }
-        // 计算能耗开销
         }
+        // 计算能耗开销
         powerNew = static_cast<double>(capSumInPd + t->GetCapacity()) /
             expectFreq->capacity * expectFreq->power;
         double power = powerNew - powerOld;
