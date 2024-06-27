@@ -119,7 +119,15 @@ void CPU::updateTasksWaitTime()
 // 重新计算task队列中的capacity和
 void CPU::RebuildCapacity()
 {
-    this->capacity = this->calcTotalCapacity();
+    uint32_t totalCap = 0;
+
+    totalCap = this->calcTotalCapacity();
+    if (totalCap > this->GetCurCapacity()) {
+        totalCap = this->GetCurCapacity();
+    }
+
+    this->capacity = totalCap;
+
     return;
 }
 
