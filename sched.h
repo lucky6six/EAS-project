@@ -14,6 +14,12 @@ class PerfDomain;
 
 // #define SCHED_DEBUG
 
+enum SchedPolicy
+{
+    SCHED_EAS,
+    SCHED_OPT
+};
+
 class Scheduler
 {
 protected:

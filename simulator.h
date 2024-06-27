@@ -27,6 +27,7 @@ private:
     string middleCorePath = "./cpu-models/MiddleCoreFreq.csv";
     string bigCorePath = "./cpu-models/BigCoreFreq.csv";
     string taskTestPath = "./task-tests/taskSample.csv";
+    enum SchedPolicy policy = SCHED_EAS;
     const string configFile = "./simulator.config";
 
     static uint64_t getCurrentTimeReal();

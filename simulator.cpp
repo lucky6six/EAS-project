@@ -67,6 +67,8 @@ void Simulator::configSimulator()
 
     this->taskTestPath = configMap["TEST_SAMPLE_PATH"];
 
+    this->policy = configMap["SCHED_POLICY"] == "eas" ? SCHED_EAS : SCHED_OPT;
+
 out_report_config:
     std::cout << "|-- LITTLE_CORE_NUM: " << this->litteCoreNum << std::endl;
     std::cout << "|-- MIDDLE_CORE_NUM: " << this->middleCoreNum << std::endl;
@@ -74,6 +76,7 @@ out_report_config:
     std::cout << "|-- LITTLE_CORE_PATH: " << this->littleCorePath << std::endl;
     std::cout << "|-- MIDDLE_CORE_PATH: " << this->middleCorePath << std::endl;
     std::cout << "|-- BIG_CORE_PATH: " << this->bigCorePath << std::endl;
+    std::cout << "|-- SCHED_POLICY: " << (this->policy == SCHED_EAS ? "EAS" : "OPT") << std::endl;
     std::cout << "|-- TEST_SAMPLE_PATH: " << this->taskTestPath << std::endl;
     std::cout << "*************** Config Done! ***************\n" << std::endl;
 }
@@ -106,8 +109,13 @@ Simulator::Simulator()
         }
     }
 
-    /* Create EAS Scheduler */
-    scheduler = new EasScheduler(&this->perfDomains);
+    /* Create EAS/OPT Scheduler */
+    if (this->policy == SCHED_OPT)
+        scheduler = new OptScheduler(&this->perfDomains);
+    else if (this->policy == SCHED_EAS)
+        scheduler = new EasScheduler(&this->perfDomains);
+    else
+        throw std::invalid_argument("Invalid Sched Policy");
     this->passSchedulerToCPU(scheduler);
     this->inputTasks(taskTestPath);
 }
