@@ -16,7 +16,7 @@ private:
     uint64_t workPeriod; /* us */
     /* us为单位，0-10ms */
     uint64_t sleepPeriod;   /* us */
-    uint64_t totalWorkTime; /* us */
+    double totalWorkTime; /* us */
     uint64_t totalWaitTime; /* us */
     /* us为单位，50-500ms */
     uint64_t needWorkTime; /* us */

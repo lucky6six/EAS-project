@@ -4,10 +4,35 @@
 #include "task.h"
 #include "simulator.h"
 
+const static uint32_t window_size = 1000;
+
 OptScheduler::OptScheduler(vector<PerfDomain *> *pds) : Scheduler(pds) {
-  historyEnable = 1;
-  historyCapacity = 2500;
-  currentCapacity = 0;
+  for(auto pd: *pds){
+    for(CPU* cpu: pd->GetCPUS()){
+      historyCapacities[cpu] = new queue<uint32_t>;
+      mainCPU = cpu;
+    }
+  }
+}
+
+OptScheduler::~OptScheduler() {
+  for(auto pa: historyCapacities){
+    delete pa.second;
+  }
+}
+
+void OptScheduler::updateHistory(CPU *cpu){
+  uint32_t currCPUCapacity = cpu->GetCapacity();
+  if(cpu == mainCPU){
+    currCPUCapacity += waitCapacity;
+  }
+  (*historyCapacities[cpu]).push(currCPUCapacity);
+  historyCapacity += currCPUCapacity;
+  if((*historyCapacities[cpu]).size()>window_size){
+    historyEnable = 1;
+    historyCapacity-=(*historyCapacities[cpu]).front();
+    (*historyCapacities[cpu]).pop();
+  }
 }
 
 // 同时考虑频点更新,但不实际更新频点，在外层调度是更新
@@ -112,12 +137,20 @@ CPU *OptScheduler::schedTask(Task *t)
 CPU *OptScheduler::SchedNewTask(Task *t)
 {
     std::lock_guard<mutex> guard(this->schedLock);
-    if(historyEnable && t->GetCapacity()+currentCapacity>historyCapacity){
+    if(historyEnable && t->GetCapacity()+currentCapacity>(historyCapacity/window_size)){
+      if(waitlist.count(t->GetTaskId()) == 0){
+        waitCapacity += t->GetCapacity();
+        waitlist.insert(t->GetTaskId());
+      }
       return nullptr;
     }
     CPU *c = findNextCpu(t);
     if (c != nullptr)
     {
+        if(waitlist.count(t->GetTaskId()) != 0){
+          waitCapacity -= t->GetCapacity();
+          waitlist.erase(t->GetTaskId());
+        }
         currentCapacity+= t->GetCapacity();
         c->AddTask(t);
         c->GetPerfDomain()->RebuildPerfDomain();
@@ -129,22 +162,20 @@ CPU *OptScheduler::SchedNewTask(Task *t)
 CPU *OptScheduler::SchedCpu(CPU *cpu)
 {
     Task *t;
-    CPU *toCPU = nullptr;
-    if (cpu->IsEmpty())
+    CPU *toCPU = nullptr;   
+    std::lock_guard<mutex> guard(this->schedLock); 
+    if (!cpu->IsEmpty())
     {
-        return nullptr;
+      t = cpu->PopTask();
+      cpu->GetPerfDomain()->RebuildPerfDomain();
+      if (t->IsTaskFinish())
+      {
+          currentCapacity -= t->GetCapacity();
+          Statistics::AddToFinishList(t);
+      } else {
+        toCPU = schedTask(t);
+      }
     }
-
-    std::lock_guard<mutex> guard(this->schedLock);
-    t = cpu->PopTask();
-    cpu->GetPerfDomain()->RebuildPerfDomain();
-    if (t->IsTaskFinish())
-    {
-        currentCapacity -= t->GetCapacity();
-        Statistics::AddToFinishList(t);
-        return nullptr;
-    }
-    toCPU = schedTask(t);
-
+    updateHistory(cpu);
     return toCPU;
 }

@@ -60,6 +60,7 @@ void Simulator::configSimulator()
     this->litteCoreNum = std::stoi(configMap["LITTLE_CORE_NUM"]);
     this->middleCoreNum = std::stoi(configMap["MIDDLE_CORE_NUM"]);
     this->bigCoreNum = std::stoi(configMap["BIG_CORE_NUM"]);
+    this->enableOPT = std::stoi(configMap["ENABLE_OPT_SCHED"]);
 
     this->littleCorePath = configMap["LITTLE_CORE_PATH"];
     this->middleCorePath = configMap["MIDDLE_CORE_PATH"];
@@ -75,6 +76,7 @@ out_report_config:
     std::cout << "|-- MIDDLE_CORE_PATH: " << this->middleCorePath << std::endl;
     std::cout << "|-- BIG_CORE_PATH: " << this->bigCorePath << std::endl;
     std::cout << "|-- TEST_SAMPLE_PATH: " << this->taskTestPath << std::endl;
+    std::cout << "|-- ENABLE_OPT_SCHED: " << this->enableOPT << std::endl;
     std::cout << "*************** Config Done! ***************\n" << std::endl;
 }
 
@@ -107,7 +109,11 @@ Simulator::Simulator()
     }
 
     /* Create EAS Scheduler */
-    scheduler = new EasScheduler(&this->perfDomains);
+    if(this->enableOPT){
+      scheduler = new OptScheduler(&this->perfDomains);
+    } else{
+      scheduler = new EasScheduler(&this->perfDomains);
+    }
     this->passSchedulerToCPU(scheduler);
     this->inputTasks(taskTestPath);
 }
@@ -170,7 +176,7 @@ void Simulator::startAssignTask(vector<Task*> &TaskList) {
                         auto targetCPU = curSim->scheduler->SchedNewTask(*taskIt);
                         if (targetCPU != nullptr) {
                             // Task assigned successfully, just erare it
-                            printf("New task %p %d\n", *taskIt, (*taskIt)->id);
+                            //printf("New task %p %d\n", *taskIt, (*taskIt)->id);
                             TaskList.erase(taskIt);
                             break;
                         }
@@ -272,10 +278,10 @@ void Statistics::ReportTotalWaitTime()
         return a->GetTaskId() < b->GetTaskId();
     });
 
-    for (auto task: Statistics::finishTasks) {
-        std::cout << "|-- " << "Task " << task->GetTaskId() << " Wait Time: " <<
-            task->GetTotalWaitTime() / 1000 << " ms" << std::endl;
-    }
+    //for (auto task: Statistics::finishTasks) {
+    //    std::cout << "|-- " << "Task " << task->GetTaskId() << " Wait Time: " <<
+    //        task->GetTotalWaitTime() / 1000 << " ms" << std::endl;
+    //}
 }
 
 void Statistics::ReportAll()

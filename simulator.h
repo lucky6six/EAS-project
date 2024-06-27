@@ -23,10 +23,11 @@ private:
     uint32_t litteCoreNum = 3;
     uint32_t middleCoreNum = 4;
     uint32_t bigCoreNum = 1;
+    bool enableOPT = 0;
     string littleCorePath = "./cpu-models/LittleCoreFreq.csv";
     string middleCorePath = "./cpu-models/MiddleCoreFreq.csv";
     string bigCorePath = "./cpu-models/BigCoreFreq.csv";
-    string taskTestPath = "./task-tests/taskSample.csv";
+    string taskTestPath = "./task-tests/taskSample2.csv";
     const string configFile = "./simulator.config";
 
     static uint64_t getCurrentTimeReal();

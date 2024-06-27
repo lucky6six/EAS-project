@@ -11,7 +11,7 @@ using std::ifstream;
 using std::istringstream;
 
 uint32_t CPU::cpusid = 0;
-uint64_t CPU::timeSlice = 20000; /* =20ms */
+uint64_t CPU::timeSlice = 2000; /* =20ms */
 
 // 初始化 curCPUFreq -> minCPUFreq，perfDomain（belong_to），capacity（0）
 CPU::CPU(PerfDomain *pd, EnergyModel *em)
@@ -44,10 +44,10 @@ void CPU::execTask(CPU *curCPU, Task *task)
     double power; /* 微焦耳 */
     /* Calculate cost time & capacity */
     task->CheckDeadline(currentTime);
-    task->UpdateWorkTime(curCPU->GetCurCapacity());
+    task->UpdateWorkTime(curCPU->GetCapacity());
     /* Calculate power const */
-    power = task->CalculateRatio(curCPU->GetCurCapacity()) *
-        CPU::GetCPUPower(curCPU) * CPU::GetTimeSilceMilli();
+    power = 1.0 * curCPU->GetCapacity() *
+        CPU::GetCPUPower(curCPU) / curCPU->GetCurCapacity() * CPU::GetTimeSilceMilli();
     Statistics::AddTotalPower(power);
     /* Update tasks's wait_time */
     curCPU->updateTasksWaitTime();
@@ -63,8 +63,8 @@ void CPU::Run()
             if (!curCPU->tasksQueue.empty()) {
                 Task *task = curCPU->tasksQueue.front();
                 curCPU->execTask(curCPU, task);
-                printf("task %d in cpu %d total_time: %lu\n",
-                    task->GetTaskId(), curCPU->GetCPUId(), task->GetTotalWorkTime());
+                //printf("task %d in cpu %d total_time: %lu\n",
+                //    task->GetTaskId(), curCPU->GetCPUId(), task->GetTotalWorkTime());
             }
             std::this_thread::sleep_for(std::chrono::microseconds(CPU::timeSlice));
             curCPU->scheduler->SchedCpu(curCPU);

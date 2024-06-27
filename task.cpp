@@ -24,10 +24,10 @@ double Task::CalculateRatio(uint64_t CoreCap)
 
 void Task::UpdateWorkTime(uint64_t CoreCap)
 {
-    this->totalWorkTime += CPU::timeSlice * CalculateRatio(CoreCap);
-
+    this->totalWorkTime += CPU::timeSlice * CoreCap / 1024.0;
+    //printf("task %d work %d\n", this->id,this->totalWorkTime);
     if (this->totalWorkTime > this->needWorkTime) {
-        printf("task %d finish\n", this->id);
+        //printf("task %d finish\n", this->id);
         this->isFinish = true;
     }
 }
